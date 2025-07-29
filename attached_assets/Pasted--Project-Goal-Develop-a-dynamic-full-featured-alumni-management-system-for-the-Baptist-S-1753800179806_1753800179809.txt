@@ -1,0 +1,200 @@
+🎯 **Project Goal**
+
+Develop a dynamic, full-featured alumni management system for the **Baptist Student Fellowship**, using only core PHP, HTML, JavaScript, and MySQL. No external backend or frontend frameworks. Must be mobile-friendly and ready to run on a local or shared hosting environment (e.g., cPanel).
+
+---
+
+### ⚙️ **Core Technologies**
+
+* **Backend**: PHP 8.x+ (procedural or modular)
+* **Frontend**: HTML5, CSS3, JavaScript (Vanilla JS or jQuery)
+* **Database**: MySQL 8.0+
+* **Real-Time**: AJAX (for chat and birthday headlines)
+* **UI**: Bootstrap 5.3 (optional for styling only)
+* **Server**: Apache with local dev via XAMPP/WAMP
+
+---
+
+### ✅ **Features to Implement**
+
+#### 🔐 User Registration & Login
+
+* User sign up with:
+
+  * Full Name, Email, Phone
+  * Birthday (Month & Day only)
+  * Multiple **executive roles** with session (e.g., President – 2020/2021)
+  * Multiple **worker units** with session (e.g., Ushering – 2019/2020)
+  * Fellowship attendance years (e.g., 2018–2022)
+* Secure login with session management
+* Passwords hashed using `password_hash()` and `password_verify()`
+* Admin panel to manage users and content
+
+---
+
+#### 💬 Real-Time Chat System
+
+* One-to-one chat using:
+
+  * PHP + MySQL + AJAX polling (no WebSockets)
+  * Chat inbox view
+  * Message read/unread indicators
+* Store messages in `messages` table
+
+---
+
+#### 🎂 Birthday Reminder
+
+* Store birthdays (day and month only)
+* Cron job (or daily page load check) to compare today’s date
+* Display celebrants at the top of the dashboard:
+
+  > 🎉 Happy Birthday \[Name]! 🎂
+
+---
+
+#### 🖼️ Gallery (Media Archive)
+
+* Upload images/videos per session and event type (e.g., Bible Day)
+* Admin approval before publishing
+* Public gallery view with filters:
+
+  * Event type
+  * Year/session
+
+---
+
+#### 🧾 Alumni Directory
+
+* Search/filter users by:
+
+  * Name
+  * Session
+  * Worker unit or Executive post
+* Public-facing directory with profile snapshots
+* Private details view (if allowed)
+
+---
+
+#### 📢 Announcements & Events
+
+* Admin can post announcements:
+
+  * Title, description, optional file/image
+* Users see announcements on dashboard
+* RSVP for events with count tracker
+
+---
+
+#### 📚 Resource Hub
+
+* Upload and download:
+
+  * Devotionals, sermons, training materials
+* Categorized by type (PDFs, audio, video)
+
+---
+
+#### 🙏 Prayer Wall & Testimony Board
+
+* Users post prayer requests & testimonies
+* Optional “I’m praying” counter
+* Admin moderation required
+
+---
+
+#### 💼 Job Board
+
+* Alumni can post job/internship opportunities
+* Fields: title, description, deadline, location
+* Admin approval before display
+* Job seekers can filter or search
+
+---
+
+#### 🤝 Mentorship Matching
+
+* Users can register as mentors or mentees
+* System matches based on interest/department
+* Direct chat between matched users (reusing chat module)
+
+---
+
+#### 🕰️ Fellowship History Timeline
+
+* Page showing:
+
+  * Yearly leadership history
+  * Past events
+  * Fellowship milestones
+* Display with accordion or timeline-style CSS
+
+---
+
+#### 🛠️ Admin Panel
+
+* View user stats, birthdays, job posts, gallery uploads
+* Approve or reject content
+* Export user directory to CSV
+* Reset passwords or suspend users
+
+---
+
+### 🎨 Branding
+
+* **Name**: Baptist Student Fellowship
+* **Official Color**: Light Green (`#A8D5BA`)
+* Use existing fellowship logo in header
+* Mobile-first layout, light and clean UI
+* Sticky header with quick nav (Chat, Gallery, Directory)
+
+---
+
+### 📁 File/Folder Structure
+
+```
+/bsf-alumni/
+├── /admin/              # Admin tools and approval
+├── /auth/               # Login, registration, password
+├── /chat/               # Chat system with AJAX
+├── /config/             # DB config and utilities
+├── /gallery/            # Media upload and view
+├── /includes/           # Common header, footer
+├── /js/                 # Vanilla JS or jQuery scripts
+├── /css/                # Custom styles
+├── /resources/          # Resource hub files
+├── /uploads/            # User/media uploads
+├── /users/              # Profile, edit, directory
+├── dashboard.php
+├── birthdays.php
+├── timeline.php
+└── index.php
+```
+
+---
+
+### 🧪 Security & Quality
+
+* Input validation and sanitization with `filter_input()`
+* CSRF protection using form tokens
+* SQL Injection prevention using prepared statements (`mysqli` or `PDO`)
+* File upload validations (size, type)
+* Basic session-based auth system
+
+---
+
+### 🚀 Deployment
+
+* Works offline on XAMPP/WAMP
+* Upload-ready for shared hosting (e.g., cPanel)
+* `.htaccess` routing (optional)
+* README with setup instructions
+
+---
+
+###  Enhancements to be included
+
+* Email notification to birthday celebrants (via PHPMailer)
+* Weekly digest for admins (new users, birthdays, pending approvals)
+* Light/dark mode toggle
+* Data backup tool (MySQL export button)
