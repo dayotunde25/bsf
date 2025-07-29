@@ -120,7 +120,7 @@ npm start
 
 - The server listens on all network interfaces (`0.0.0.0`) to allow external access.
 - Ensure environment variables are securely managed in your hosting environment.
-- For authentication, Replit Auth with OpenID Connect is used. This is optional and only enabled when the `REPLIT_DOMAINS` environment variable is set. For other environments, this can be ignored.
+- A simple email and password authentication system is now in place.
 
 ---
 
