@@ -8,6 +8,16 @@
 
 ## Environment Variables
 
+For local development, create a `.env` file in the root of the project and add the following variables:
+
+```
+DATABASE_URL="your_postgresql_connection_string"
+PORT=5000
+# Add other secrets like SESSION_SECRET and Replit Auth config if needed
+```
+
+For production on Render, you will set these environment variables in the Render dashboard.
+
 - `DATABASE_URL`: PostgreSQL connection string (required)
 - `PORT`: Port number to run the server on (default: 5000)
 - Session secret and Replit Auth configuration as needed for authentication
@@ -96,7 +106,7 @@ npm start
 
 4. Add environment variables in Render dashboard:
 
-- `DATABASE_URL`: Your Render PostgreSQL database connection string.
+- `DATABASE_URL`: Your Render PostgreSQL database **internal** connection string.
 - `PORT`: Set to `5000` or your preferred port.
 - Any other secrets such as session secret and Replit Auth config.
 
