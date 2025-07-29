@@ -7,7 +7,9 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import {
-  insertExecutiveRoleSchema,
+  insertExecutivePostSchema,
+  insertFamilyHeadSchema,
+  insertOtherPostSchema,
   insertWorkerUnitSchema,
   insertMessageSchema,
   insertMediaSchema,
@@ -587,6 +589,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to approve job" });
+    }
+  });
+
+  // Admin role management routes
+  app.post("/api/admin/update-user-role/:userId", isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (!currentUser?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { userId } = req.params;
+      const { role, canPostAnnouncements } = req.body;
+      
+      await storage.updateUserRole(userId, role, canPostAnnouncements);
+      res.json({ message: "User role updated successfully" });
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+
+  app.post("/api/admin/assign-post", isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (!currentUser?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { userId, postType, session, department, academicLevel } = req.body;
+      
+      // Update user academic info first
+      if (department || academicLevel) {
+        await storage.updateUserAcademicInfo(userId, { department, academicLevel });
+      }
+
+      // Assign the specific post
+      if (postType === "executive") {
+        await storage.createExecutivePost({
+          userId,
+          position: req.body.position,
+          session,
+        });
+      } else if (postType === "family") {
+        await storage.createFamilyHead({
+          userId,
+          familyName: req.body.familyName,
+          session,
+        });
+      } else if (postType === "worker") {
+        await storage.createWorkerUnit({
+          userId,
+          unitName: req.body.unitName,
+          session,
+        });
+      } else if (postType === "other") {
+        await storage.createOtherPost({
+          userId,
+          postName: req.body.postName,
+          session,
+        });
+      }
+
+      res.json({ message: "Post assigned successfully" });
+    } catch (error) {
+      console.error("Error assigning post:", error);
+      res.status(500).json({ message: "Failed to assign post" });
     }
   });
 

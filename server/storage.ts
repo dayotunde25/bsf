@@ -1,6 +1,8 @@
 import {
   users,
-  executiveRoles,
+  executivePosts,
+  familyHeads,
+  otherPosts,
   workerUnits,
   messages,
   media,
@@ -15,7 +17,9 @@ import {
   fellowshipHistory,
   type User,
   type UpsertUser,
-  type ExecutiveRole,
+  type ExecutivePost,
+  type FamilyHead,
+  type OtherPost,
   type WorkerUnit,
   type Message,
   type Media,
@@ -28,7 +32,9 @@ import {
   type JobApplication,
   type Mentorship,
   type FellowshipHistory,
-  type InsertExecutiveRole,
+  type InsertExecutivePost,
+  type InsertFamilyHead,
+  type InsertOtherPost,
   type InsertWorkerUnit,
   type InsertMessage,
   type InsertMedia,
@@ -51,9 +57,19 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   getUserByEmail(email: string): Promise<User | undefined>;
   
-  // Executive roles
-  createExecutiveRole(role: InsertExecutiveRole): Promise<ExecutiveRole>;
-  getUserExecutiveRoles(userId: string): Promise<ExecutiveRole[]>;
+  // Executive posts and roles
+  createExecutivePost(post: InsertExecutivePost): Promise<ExecutivePost>;
+  getUserExecutivePosts(userId: string): Promise<ExecutivePost[]>;
+  createFamilyHead(familyHead: InsertFamilyHead): Promise<FamilyHead>;
+  getUserFamilyHeads(userId: string): Promise<FamilyHead[]>;
+  createOtherPost(post: InsertOtherPost): Promise<OtherPost>;
+  getUserOtherPosts(userId: string): Promise<OtherPost[]>;
+  
+  // User role management (admin functions)
+  updateUserRole(userId: string, role: string, canPostAnnouncements: boolean): Promise<void>;
+  getAllUsers(): Promise<User[]>;
+  getUserWithPosts(userId: string): Promise<User & { executivePosts: ExecutivePost[]; familyHeads: FamilyHead[]; workerUnits: WorkerUnit[]; otherPosts: OtherPost[] }>;
+  updateUserAcademicInfo(userId: string, info: { department?: string; academicLevel?: string }): Promise<void>;
   
   // Worker units
   createWorkerUnit(unit: InsertWorkerUnit): Promise<WorkerUnit>;
@@ -110,8 +126,7 @@ export interface IStorage {
   createFellowshipHistory(history: InsertFellowshipHistory): Promise<FellowshipHistory>;
   getFellowshipHistory(): Promise<FellowshipHistory[]>;
   
-  // Admin functions
-  getAllUsers(): Promise<User[]>;
+  // Admin functions (already defined above)
   getUserStats(): Promise<{ totalAlumni: number; activeMembers: number; totalEvents: number; totalJobs: number }>;
   getTodaysBirthdays(): Promise<User[]>;
   searchUsers(query: string): Promise<User[]>;
@@ -144,14 +159,60 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  // Executive roles
-  async createExecutiveRole(role: InsertExecutiveRole): Promise<ExecutiveRole> {
-    const [newRole] = await db.insert(executiveRoles).values(role).returning();
-    return newRole;
+  // Executive posts and roles
+  async createExecutivePost(post: InsertExecutivePost): Promise<ExecutivePost> {
+    const [newPost] = await db.insert(executivePosts).values(post).returning();
+    return newPost;
   }
 
-  async getUserExecutiveRoles(userId: string): Promise<ExecutiveRole[]> {
-    return await db.select().from(executiveRoles).where(eq(executiveRoles.userId, userId));
+  async getUserExecutivePosts(userId: string): Promise<ExecutivePost[]> {
+    return await db.select().from(executivePosts).where(eq(executivePosts.userId, userId));
+  }
+
+  async createFamilyHead(familyHead: InsertFamilyHead): Promise<FamilyHead> {
+    const [newFamilyHead] = await db.insert(familyHeads).values(familyHead).returning();
+    return newFamilyHead;
+  }
+
+  async getUserFamilyHeads(userId: string): Promise<FamilyHead[]> {
+    return await db.select().from(familyHeads).where(eq(familyHeads.userId, userId));
+  }
+
+  async createOtherPost(post: InsertOtherPost): Promise<OtherPost> {
+    const [newPost] = await db.insert(otherPosts).values(post).returning();
+    return newPost;
+  }
+
+  async getUserOtherPosts(userId: string): Promise<OtherPost[]> {
+    return await db.select().from(otherPosts).where(eq(otherPosts.userId, userId));
+  }
+
+  async updateUserRole(userId: string, role: string, canPostAnnouncements: boolean): Promise<void> {
+    await db
+      .update(users)
+      .set({ role: role as any, canPostAnnouncements })
+      .where(eq(users.id, userId));
+  }
+
+  async getUserWithPosts(userId: string): Promise<User & { executivePosts: ExecutivePost[]; familyHeads: FamilyHead[]; workerUnits: WorkerUnit[]; otherPosts: OtherPost[] }> {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error("User not found");
+    
+    const [executivePosts, familyHeads, workerUnits, otherPosts] = await Promise.all([
+      this.getUserExecutivePosts(userId),
+      this.getUserFamilyHeads(userId),
+      this.getUserWorkerUnits(userId),
+      this.getUserOtherPosts(userId)
+    ]);
+
+    return { ...user, executivePosts, familyHeads, workerUnits, otherPosts };
+  }
+
+  async updateUserAcademicInfo(userId: string, info: { department?: string; academicLevel?: string }): Promise<void> {
+    await db
+      .update(users)
+      .set(info)
+      .where(eq(users.id, userId));
   }
 
   // Worker units

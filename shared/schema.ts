@@ -26,6 +26,10 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
+// Role enums
+export const userRoleEnum = pgEnum("user_role", ["Admin", "Mentor", "Alumni"]);
+export const academicLevelEnum = pgEnum("academic_level", ["ND1", "ND2", "HND1", "HND2"]);
+
 // User storage table for Replit Auth
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -36,26 +40,48 @@ export const users = pgTable("users", {
   phone: varchar("phone"),
   birthday: date("birthday"),
   attendanceYears: text("attendance_years"), // e.g., "2018-2022"
+  department: varchar("department"), // Course of study
+  academicLevel: academicLevelEnum("academic_level"), // Level when in fellowship
+  role: userRoleEnum("role").default("Alumni"),
+  canPostAnnouncements: boolean("can_post_announcements").default(false),
   isAdmin: boolean("is_admin").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Executive roles
-export const executiveRoles = pgTable("executive_roles", {
+// Executive posts (one per person per session)
+export const executivePosts = pgTable("executive_posts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  role: varchar("role").notNull(), // President, Vice President, Secretary, Treasurer
+  postTitle: varchar("post_title").notNull(), // Pastor(President), Bishop(Vice President), etc.
   session: varchar("session").notNull(), // e.g., "2020/2021"
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Worker units
+// Family heads
+export const familyHeads = pgTable("family_heads", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  familyName: varchar("family_name").notNull(), // User-specified family names
+  session: varchar("session").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Worker units (multiple per person allowed)
 export const workerUnits = pgTable("worker_units", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  unit: varchar("unit").notNull(), // Ushering, Choir, Technical, etc.
-  session: varchar("session").notNull(), // e.g., "2019/2020"
+  unitName: varchar("unit_name").notNull(), // Ushering, Choir, Technical, etc.
+  session: varchar("session").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Other posts (multiple per person allowed)
+export const otherPosts = pgTable("other_posts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  postTitle: varchar("post_title").notNull(), // Building chairperson, FYB chairperson, etc.
+  session: varchar("session").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -198,8 +224,10 @@ export const fellowshipHistory = pgTable("fellowship_history", {
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
-  executiveRoles: many(executiveRoles),
+  executivePosts: many(executivePosts),
+  familyHeads: many(familyHeads),
   workerUnits: many(workerUnits),
+  otherPosts: many(otherPosts),
   sentMessages: many(messages, { relationName: "sender" }),
   receivedMessages: many(messages, { relationName: "receiver" }),
   media: many(media),
@@ -213,8 +241,16 @@ export const usersRelations = relations(users, ({ many }) => ({
   mentorships: many(mentorships),
 }));
 
-export const executiveRolesRelations = relations(executiveRoles, ({ one }) => ({
-  user: one(users, { fields: [executiveRoles.userId], references: [users.id] }),
+export const executivePostsRelations = relations(executivePosts, ({ one }) => ({
+  user: one(users, { fields: [executivePosts.userId], references: [users.id] }),
+}));
+
+export const familyHeadsRelations = relations(familyHeads, ({ one }) => ({
+  user: one(users, { fields: [familyHeads.userId], references: [users.id] }),
+}));
+
+export const otherPostsRelations = relations(otherPosts, ({ one }) => ({
+  user: one(users, { fields: [otherPosts.userId], references: [users.id] }),
 }));
 
 export const workerUnitsRelations = relations(workerUnits, ({ one }) => ({
@@ -280,7 +316,17 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
 });
 
-export const insertExecutiveRoleSchema = createInsertSchema(executiveRoles).omit({
+export const insertExecutivePostSchema = createInsertSchema(executivePosts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertFamilyHeadSchema = createInsertSchema(familyHeads).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertOtherPostSchema = createInsertSchema(otherPosts).omit({
   id: true,
   createdAt: true,
 });
@@ -348,8 +394,10 @@ export const insertFellowshipHistorySchema = createInsertSchema(fellowshipHistor
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
-export type ExecutiveRole = typeof executiveRoles.$inferSelect;
+export type ExecutivePost = typeof executivePosts.$inferSelect;
+export type FamilyHead = typeof familyHeads.$inferSelect;
 export type WorkerUnit = typeof workerUnits.$inferSelect;
+export type OtherPost = typeof otherPosts.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type Media = typeof media.$inferSelect;
 export type Announcement = typeof announcements.$inferSelect;
@@ -362,8 +410,10 @@ export type JobApplication = typeof jobApplications.$inferSelect;
 export type Mentorship = typeof mentorships.$inferSelect;
 export type FellowshipHistory = typeof fellowshipHistory.$inferSelect;
 
-export type InsertExecutiveRole = z.infer<typeof insertExecutiveRoleSchema>;
+export type InsertExecutivePost = z.infer<typeof insertExecutivePostSchema>;
+export type InsertFamilyHead = z.infer<typeof insertFamilyHeadSchema>;
 export type InsertWorkerUnit = z.infer<typeof insertWorkerUnitSchema>;
+export type InsertOtherPost = z.infer<typeof insertOtherPostSchema>;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type InsertMedia = z.infer<typeof insertMediaSchema>;
 export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;

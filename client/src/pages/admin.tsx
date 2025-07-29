@@ -7,6 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { 
@@ -23,13 +27,34 @@ import {
   TrendingUp,
   Activity,
   FileText,
-  Download
+  Download,
+  UserPlus,
+  Crown,
+  Edit
 } from "lucide-react";
+
+// Executive posts available in BSF
+const EXECUTIVE_POSTS = [
+  "Pastor(President)", "Bishop(Vice President)", "General Secretary", "Treasurer(CBN)", 
+  "Evangelism coordinator", "Discipleship coordinator", "Sister's coordinator(Mummy)", 
+  "Brother's coordinator(Daddy)", "Choir coordinator(CM)", "Drama coordinator", 
+  "Chief Usher", "Library Secretary", "Bible Coordinator", "Prayer coordinator", 
+  "Publicity/Editorial coordinator", "Organizing Coordinator"
+];
+
+const OTHER_POSTS = [
+  "Building chairperson", "FYB chairperson", "House coordinator", "Assistant House coordinator"
+];
+
+const ACADEMIC_LEVELS = ["ND1", "ND2", "HND1", "HND2"];
 
 export default function Admin() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
+  const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
 
   // Redirect if not admin
   useEffect(() => {
@@ -111,6 +136,33 @@ export default function Admin() {
       toast({ title: "Job approved", description: "The job posting has been approved and published." });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/pending-jobs'] });
       queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
+    },
+    onError: handleMutationError,
+  });
+
+  // Role management mutations
+  const updateUserRoleMutation = useMutation({
+    mutationFn: async ({ userId, role, canPostAnnouncements }: { userId: string; role: string; canPostAnnouncements: boolean }) => {
+      return await apiRequest("POST", `/api/admin/update-user-role/${userId}`, { role, canPostAnnouncements });
+    },
+    onSuccess: () => {
+      toast({ title: "User role updated", description: "The user's role and permissions have been updated successfully." });
+      queryClient.invalidateQueries({ queryKey: ['/api/directory'] });
+      setIsRoleDialogOpen(false);
+      setSelectedUser(null);
+    },
+    onError: handleMutationError,
+  });
+
+  const assignPostMutation = useMutation({
+    mutationFn: async (postData: any) => {
+      return await apiRequest("POST", "/api/admin/assign-post", postData);
+    },
+    onSuccess: () => {
+      toast({ title: "Post assigned", description: "The post has been assigned successfully." });
+      queryClient.invalidateQueries({ queryKey: ['/api/directory'] });
+      setIsPostDialogOpen(false);
+      setSelectedUser(null);
     },
     onError: handleMutationError,
   });
@@ -223,8 +275,12 @@ export default function Admin() {
           </Card>
         </div>
 
-        <Tabs defaultValue="media" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+        <Tabs defaultValue="users" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="users">
+              <Crown className="mr-2" size={16} />
+              User Management
+            </TabsTrigger>
             <TabsTrigger value="media" className="relative">
               Media
               {pendingMedia?.length > 0 && (
@@ -257,8 +313,111 @@ export default function Admin() {
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
+
+          {/* User Role Management */}
+          <TabsContent value="users" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="text-bsf-green" size={20} />
+                  User Role Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {users?.map((user: any) => (
+                    <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-bsf-green-light rounded-full flex items-center justify-center">
+                          {user.profileImageUrl ? (
+                            <img src={user.profileImageUrl} alt={user.firstName} className="w-10 h-10 rounded-full object-cover" />
+                          ) : (
+                            <span className="text-bsf-green font-medium">
+                              {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <h4 className="font-medium">{user.firstName} {user.lastName}</h4>
+                          <p className="text-sm text-gray-600">{user.email}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant={user.role === 'Admin' ? 'destructive' : user.role === 'Mentor' ? 'default' : 'secondary'}>
+                              {user.role || 'Alumni'}
+                            </Badge>
+                            {user.canPostAnnouncements && (
+                              <Badge variant="outline" className="text-blue-600 border-blue-600">
+                                Can Post
+                              </Badge>
+                            )}
+                            {user.department && (
+                              <Badge variant="outline" className="text-green-600">
+                                {user.department}
+                              </Badge>
+                            )}
+                            {user.academicLevel && (
+                              <Badge variant="outline" className="text-purple-600">
+                                {user.academicLevel}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Dialog open={isRoleDialogOpen && selectedUser?.id === user.id} onOpenChange={setIsRoleDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => setSelectedUser(user)}
+                            >
+                              <Crown size={14} className="mr-1" />
+                              Manage Role
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Manage User Role - {user.firstName} {user.lastName}</DialogTitle>
+                            </DialogHeader>
+                            <RoleManagementForm 
+                              user={user} 
+                              onSubmit={(data) => updateUserRoleMutation.mutate({ userId: user.id, ...data })}
+                              isLoading={updateUserRoleMutation.isPending}
+                            />
+                          </DialogContent>
+                        </Dialog>
+                        
+                        <Dialog open={isPostDialogOpen && selectedUser?.id === user.id} onOpenChange={setIsPostDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button 
+                              size="sm" 
+                              variant="default"
+                              className="bg-bsf-green hover:bg-bsf-green-dark"
+                              onClick={() => setSelectedUser(user)}
+                            >
+                              <UserPlus size={14} className="mr-1" />
+                              Assign Post
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Assign Post - {user.firstName} {user.lastName}</DialogTitle>
+                            </DialogHeader>
+                            <PostAssignmentForm 
+                              user={user} 
+                              onSubmit={(data) => assignPostMutation.mutate({ userId: user.id, ...data })}
+                              isLoading={assignPostMutation.isPending}
+                            />
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Pending Media */}
           <TabsContent value="media" className="space-y-6">
@@ -518,5 +677,207 @@ export default function Admin() {
         </Tabs>
       </div>
     </div>
+  );
+}
+
+// Role Management Form Component
+function RoleManagementForm({ user, onSubmit, isLoading }: { user: any; onSubmit: (data: any) => void; isLoading: boolean }) {
+  const [role, setRole] = useState(user.role || 'Alumni');
+  const [canPostAnnouncements, setCanPostAnnouncements] = useState(user.canPostAnnouncements || false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({ role, canPostAnnouncements });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="role">User Role</Label>
+        <Select value={role} onValueChange={setRole}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Alumni">Alumni</SelectItem>
+            <SelectItem value="Mentor">Mentor</SelectItem>
+            <SelectItem value="Admin">Admin</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          id="canPostAnnouncements"
+          checked={canPostAnnouncements}
+          onChange={(e) => setCanPostAnnouncements(e.target.checked)}
+          className="rounded border-gray-300"
+        />
+        <Label htmlFor="canPostAnnouncements">Can Post Announcements</Label>
+      </div>
+      
+      <div className="flex justify-end space-x-2">
+        <Button type="submit" disabled={isLoading} className="bg-bsf-green hover:bg-bsf-green-dark">
+          {isLoading ? "Updating..." : "Update Role"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// Post Assignment Form Component
+function PostAssignmentForm({ user, onSubmit, isLoading }: { user: any; onSubmit: (data: any) => void; isLoading: boolean }) {
+  const [postType, setPostType] = useState("executive");
+  const [executivePost, setExecutivePost] = useState("");
+  const [otherPost, setOtherPost] = useState("");
+  const [familyName, setFamilyName] = useState("");
+  const [workerUnit, setWorkerUnit] = useState("");
+  const [session, setSession] = useState("");
+  const [department, setDepartment] = useState(user.department || "");
+  const [academicLevel, setAcademicLevel] = useState(user.academicLevel || "");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const postData: any = { 
+      postType, 
+      session, 
+      department, 
+      academicLevel,
+      userId: user.id 
+    };
+
+    if (postType === "executive") {
+      postData.position = executivePost;
+    } else if (postType === "family") {
+      postData.familyName = familyName;
+    } else if (postType === "worker") {
+      postData.unitName = workerUnit;
+    } else if (postType === "other") {
+      postData.postName = otherPost;
+    }
+
+    onSubmit(postData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="department">Department/Course</Label>
+          <Input
+            id="department"
+            value={department}
+            onChange={(e) => setDepartment(e.target.value)}
+            placeholder="e.g., Computer Science"
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="academicLevel">Academic Level</Label>
+          <Select value={academicLevel} onValueChange={setAcademicLevel}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select level" />
+            </SelectTrigger>
+            <SelectContent>
+              {ACADEMIC_LEVELS.map(level => (
+                <SelectItem key={level} value={level}>{level}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="session">Fellowship Session</Label>
+        <Input
+          id="session"
+          value={session}
+          onChange={(e) => setSession(e.target.value)}
+          placeholder="e.g., 2023/2024"
+          required
+        />
+      </div>
+      
+      <div>
+        <Label htmlFor="postType">Post Type</Label>
+        <Select value={postType} onValueChange={setPostType}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select post type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="executive">Executive Post</SelectItem>
+            <SelectItem value="family">Family Head</SelectItem>
+            <SelectItem value="worker">Worker Unit</SelectItem>
+            <SelectItem value="other">Other Post</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {postType === "executive" && (
+        <div>
+          <Label htmlFor="executivePost">Executive Position</Label>
+          <Select value={executivePost} onValueChange={setExecutivePost}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select executive position" />
+            </SelectTrigger>
+            <SelectContent>
+              {EXECUTIVE_POSTS.map(post => (
+                <SelectItem key={post} value={post}>{post}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      
+      {postType === "family" && (
+        <div>
+          <Label htmlFor="familyName">Family Name</Label>
+          <Input
+            id="familyName"
+            value={familyName}
+            onChange={(e) => setFamilyName(e.target.value)}
+            placeholder="e.g., House of David"
+            required
+          />
+        </div>
+      )}
+      
+      {postType === "worker" && (
+        <div>
+          <Label htmlFor="workerUnit">Worker Unit</Label>
+          <Input
+            id="workerUnit"
+            value={workerUnit}
+            onChange={(e) => setWorkerUnit(e.target.value)}
+            placeholder="e.g., Ushering Unit"
+            required
+          />
+        </div>
+      )}
+      
+      {postType === "other" && (
+        <div>
+          <Label htmlFor="otherPost">Other Post</Label>
+          <Select value={otherPost} onValueChange={setOtherPost}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select other post" />
+            </SelectTrigger>
+            <SelectContent>
+              {OTHER_POSTS.map(post => (
+                <SelectItem key={post} value={post}>{post}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      
+      <div className="flex justify-end space-x-2">
+        <Button type="submit" disabled={isLoading} className="bg-bsf-green hover:bg-bsf-green-dark">
+          {isLoading ? "Assigning..." : "Assign Post"}
+        </Button>
+      </div>
+    </form>
   );
 }
