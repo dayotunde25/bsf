@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baptist Student Fellowship - Alumni Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    'bsf-green': '#A8D5BA',
+                    'bsf-green-dark': '#8BC1A5',
+                    'bsf-green-light': '#C3E3D0',
+                    'dark-gray': '#2D3748',
+                    'accent-blue': '#4299E1'
+                },
+                fontFamily: {
+                    'inter': ['Inter', 'sans-serif']
+                }
+            }
+        }
+    };
+    </script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+        .chat-bubble {
+            max-width: 70%;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 25px;
+            height: calc(100% + 20px);
+            width: 2px;
+            background: #A8D5BA;
+        }
+        .timeline-item:last-child::before {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-inter">
+    <!-- Sticky Header -->
+    <header class="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo and Brand -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-bsf-green rounded-lg flex items-center justify-center">
+                        <i class="fas fa-cross text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-dark-gray">BSF Alumni</h1>
+                        <p class="text-xs text-gray-500">Baptist Student Fellowship</p>
+                    </div>
+                </div>
+
+                <!-- Quick Navigation -->
+                <nav class="hidden md:flex items-center space-x-6">
+                    <a href="#dashboard" class="text-dark-gray hover:text-bsf-green transition-colors">
+                        <i class="fas fa-home mr-2"></i>Dashboard
+                    </a>
+                    <a href="#chat" class="text-dark-gray hover:text-bsf-green transition-colors relative">
+                        <i class="fas fa-comments mr-2"></i>Chat
+                        <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                    </a>
+                    <a href="#directory" class="text-dark-gray hover:text-bsf-green transition-colors">
+                        <i class="fas fa-users mr-2"></i>Directory
+                    </a>
+                    <a href="#gallery" class="text-dark-gray hover:text-bsf-green transition-colors">
+                        <i class="fas fa-images mr-2"></i>Gallery
+                    </a>
+                </nav>
+
+                <!-- User Menu -->
+                <div class="flex items-center space-x-4">
+                    <button class="relative p-2 text-gray-600 hover:text-bsf-green">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span class="absolute -top-1 -right-1 bg-bsf-green text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">2</span>
+                    </button>
+                    
+                    <div class="flex items-center space-x-2 cursor-pointer">
+                        <!-- Profile photo of a young African person smiling warmly -->
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100" 
+                             alt="User Profile" 
+                             class="w-8 h-8 rounded-full object-cover border-2 border-bsf-green">
+                        <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden p-2 text-gray-600" id="mobile-menu-btn">
+                    <i class="fas fa-bars text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div class="md:hidden bg-white border-t border-gray-200 hidden" id="mobile-menu">
+            <div class="px-4 py-2 space-y-2">
+                <a href="#dashboard" class="block py-2 text-dark-gray hover:text-bsf-green">
+                    <i class="fas fa-home mr-2"></i>Dashboard
+                </a>
+                <a href="#chat" class="block py-2 text-dark-gray hover:text-bsf-green">
+                    <i class="fas fa-comments mr-2"></i>Chat <span class="text-red-500">(3)</span>
+                </a>
+                <a href="#directory" class="block py-2 text-dark-gray hover:text-bsf-green">
+                    <i class="fas fa-users mr-2"></i>Directory
+                </a>
+                <a href="#gallery" class="block py-2 text-dark-gray hover:text-bsf-green">
+                    <i class="fas fa-images mr-2"></i>Gallery
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        <!-- Birthday Banner -->
+        <div class="bg-gradient-to-r from-bsf-green to-bsf-green-dark rounded-xl p-6 mb-6 text-white">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="text-4xl">🎉</div>
+                    <div>
+                        <h2 class="text-2xl font-bold">Happy Birthday!</h2>
+                        <p class="text-bsf-green-light">Sarah Johnson & Michael Peters are celebrating today</p>
+                    </div>
+                </div>
+                <button class="bg-white text-bsf-green px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors">
+                    Send Wishes
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            
+            <!-- Left Column - Main Dashboard -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div class="bg-white rounded-xl p-4 shadow-sm hover-lift">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Total Alumni</p>
+                                <p class="text-2xl font-bold text-dark-gray">1,247</p>
+                            </div>
+                            <div class="bg-bsf-green-light p-2 rounded-lg">
+                                <i class="fas fa-users text-bsf-green text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl p-4 shadow-sm hover-lift">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Active Members</p>
+                                <p class="text-2xl font-bold text-dark-gray">892</p>
+                            </div>
+                            <div class="bg-green-100 p-2 rounded-lg">
+                                <i class="fas fa-user-check text-green-600 text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl p-4 shadow-sm hover-lift">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Events</p>
+                                <p class="text-2xl font-bold text-dark-gray">24</p>
+                            </div>
+                            <div class="bg-blue-100 p-2 rounded-lg">
+                                <i class="fas fa-calendar text-accent-blue text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl p-4 shadow-sm hover-lift">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Job Posts</p>
+                                <p class="text-2xl font-bold text-dark-gray">15</p>
+                            </div>
+                            <div class="bg-yellow-100 p-2 rounded-lg">
+                                <i class="fas fa-briefcase text-yellow-600 text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Announcements -->
+                <div class="bg-white rounded-xl shadow-sm">
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-dark-gray">Recent Announcements</h3>
+                            <button class="text-bsf-green hover:text-bsf-green-dark text-sm font-medium">View All</button>
+                        </div>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="flex items-start space-x-4">
+                            <div class="bg-bsf-green-light p-2 rounded-lg">
+                                <i class="fas fa-bullhorn text-bsf-green"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-medium text-dark-gray">Annual Fellowship Reunion 2024</h4>
+                                <p class="text-sm text-gray-600 mt-1">Join us for our biggest reunion yet! December 15th at the Fellowship Hall. Register now.</p>
+                                <div class="flex items-center mt-3 space-x-4">
+                                    <span class="text-xs text-gray-500">2 days ago</span>
+                                    <button class="text-bsf-green text-sm font-medium hover:underline">RSVP Now</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-4">
+                            <div class="bg-blue-100 p-2 rounded-lg">
+                                <i class="fas fa-graduation-cap text-accent-blue"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-medium text-dark-gray">Scholarship Applications Open</h4>
+                                <p class="text-sm text-gray-600 mt-1">BSF Educational Fund is now accepting applications for 2024 scholarships.</p>
+                                <div class="flex items-center mt-3 space-x-4">
+                                    <span class="text-xs text-gray-500">5 days ago</span>
+                                    <button class="text-accent-blue text-sm font-medium hover:underline">Learn More</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gallery Preview -->
+                <div class="bg-white rounded-xl shadow-sm">
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-dark-gray">Recent Gallery</h3>
+                            <button class="text-bsf-green hover:text-bsf-green-dark text-sm font-medium">View Gallery</button>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            <!-- Group photo of diverse students at a Bible study gathering -->
+                            <div class="aspect-square rounded-lg overflow-hidden hover-lift cursor-pointer">
+                                <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" 
+                                     alt="Bible Study 2024" 
+                                     class="w-full h-full object-cover">
+                            </div>
+                            <!-- Church service with people raising hands in worship -->
+                            <div class="aspect-square rounded-lg overflow-hidden hover-lift cursor-pointer">
+                                <img src="https://images.unsplash.com/photo-1438032005730-c779502df39b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" 
+                                     alt="Worship Service" 
+                                     class="w-full h-full object-cover">
+                            </div>
+                            <!-- Community service volunteers serving food -->
+                            <div class="aspect-square rounded-lg overflow-hidden hover-lift cursor-pointer">
+                                <img src="https://images.unsplash.com/photo-1559027615-cd4628902d4a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" 
+                                     alt="Community Service" 
+                                     class="w-full h-full object-cover">
+                            </div>
+                            <!-- Fellowship dinner with people sharing a meal -->
+                            <div class="aspect-square rounded-lg overflow-hidden hover-lift cursor-pointer">
+                                <img src="https://images.unsplash.com/photo-1577563908411-5077b6dc7624?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" 
+                                     alt="Fellowship Dinner" 
+                                     class="w-full h-full object-cover">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Sidebar -->
+            <div class="space-y-6">
+                
+                <!-- Chat Preview -->
+                <div class="bg-white rounded-xl shadow-sm">
+                    <div class="p-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-semibold text-dark-gray">Recent Messages</h3>
+                            <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">3 new</span>
+                        </div>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <!-- Profile photo of a young woman with natural hair -->
+                            <img src="https://pixabay.com/get/gc27e219fed3ba8c8c4b7fb777e2465c0c599def4631317c4f9ef0c65647003534998a140a12c4376230d22a389cdf03449dfab510207f4071ca317e8634ef0b4_1280.jpg" 
+                                 alt="Grace Wilson" 
+                                 class="w-10 h-10 rounded-full object-cover">
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-dark-gray text-sm">Grace Wilson</p>
+                                <p class="text-xs text-gray-600 truncate">Thanks for the prayer request...</p>
+                            </div>
+                            <div class="text-xs text-gray-500">2m</div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <!-- Profile photo of a young man in business attire -->
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=60&h=60" 
+                                 alt="David Chen" 
+                                 class="w-10 h-10 rounded-full object-cover">
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-dark-gray text-sm">David Chen</p>
+                                <p class="text-xs text-gray-600 truncate">Are you attending the reunion?</p>
+                            </div>
+                            <div class="text-xs text-gray-500">1h</div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <!-- Profile photo of a young woman with a warm smile -->
+                            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=60&h=60" 
+                                 alt="Maria Santos" 
+                                 class="w-10 h-10 rounded-full object-cover">
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-dark-gray text-sm">Maria Santos</p>
+                                <p class="text-xs text-gray-600 truncate">The job posting looks perfect!</p>
+                            </div>
+                            <div class="text-xs text-gray-500">3h</div>
+                        </div>
+                    </div>
+                    <div class="p-4 border-t border-gray-200">
+                        <button class="w-full bg-bsf-green text-white py-2 rounded-lg hover:bg-bsf-green-dark transition-colors">
+                            Open Chat
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="font-semibold text-dark-gray mb-4">Quick Actions</h3>
+                    <div class="space-y-3">
+                        <button class="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 text-left">
+                            <div class="bg-bsf-green-light p-2 rounded-lg">
+                                <i class="fas fa-user-plus text-bsf-green"></i>
+                            </div>
+                            <span class="text-dark-gray">Invite Alumni</span>
+                        </button>
+                        
+                        <button class="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 text-left">
+                            <div class="bg-blue-100 p-2 rounded-lg">
+                                <i class="fas fa-calendar-plus text-accent-blue"></i>
+                            </div>
+                            <span class="text-dark-gray">Create Event</span>
+                        </button>
+                        
+                        <button class="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 text-left">
+                            <div class="bg-yellow-100 p-2 rounded-lg">
+                                <i class="fas fa-briefcase text-yellow-600"></i>
+                            </div>
+                            <span class="text-dark-gray">Post Job</span>
+                        </button>
+                        
+                        <button class="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 text-left">
+                            <div class="bg-purple-100 p-2 rounded-lg">
+                                <i class="fas fa-pray text-purple-600"></i>
+                            </div>
+                            <span class="text-dark-gray">Prayer Request</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Prayer Wall Preview -->
+                <div class="bg-white rounded-xl shadow-sm">
+                    <div class="p-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-semibold text-dark-gray">Prayer Wall</h3>
+                            <button class="text-bsf-green hover:text-bsf-green-dark text-sm font-medium">View All</button>
+                        </div>
+                    </div>
+                    <div class="p-4 space-y-4">
+                        <div class="border-l-4 border-bsf-green pl-4">
+                            <p class="text-sm text-gray-700">"Please pray for my job interview next week. Trusting in God's plan."</p>
+                            <div class="flex items-center justify-between mt-2">
+                                <p class="text-xs text-gray-500">- Anonymous</p>
+                                <div class="flex items-center space-x-1 text-bsf-green">
+                                    <i class="fas fa-hands-helping text-xs"></i>
+                                    <span class="text-xs">12 praying</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border-l-4 border-bsf-green pl-4">
+                            <p class="text-sm text-gray-700">"Grateful for God's blessing on our family. Thank you for your prayers!"</p>
+                            <div class="flex items-center justify-between mt-2">
+                                <p class="text-xs text-gray-500">- Sarah M.</p>
+                                <div class="flex items-center space-x-1 text-bsf-green">
+                                    <i class="fas fa-heart text-xs"></i>
+                                    <span class="text-xs">8 hearts</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Sections -->
+        
+        <!-- Alumni Directory Preview -->
+        <div class="bg-white rounded-xl shadow-sm mb-8">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-dark-gray">Alumni Directory</h3>
+                    <div class="flex items-center space-x-3">
+                        <div class="relative">
+                            <input type="text" placeholder="Search alumni..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bsf-green focus:border-transparent">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        <button class="text-bsf-green hover:text-bsf-green-dark text-sm font-medium">View All</button>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Alumni Card 1 -->
+                    <div class="bg-gray-50 rounded-xl p-4 hover-lift cursor-pointer">
+                        <!-- Profile photo of a professional young man -->
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" 
+                             alt="John Doe" 
+                             class="w-16 h-16 rounded-full object-cover mx-auto mb-3">
+                        <h4 class="font-medium text-dark-gray text-center">John Doe</h4>
+                        <p class="text-sm text-gray-600 text-center">Class of 2020</p>
+                        <p class="text-xs text-bsf-green text-center mt-1">President 2019/20</p>
+                        <div class="flex justify-center space-x-2 mt-3">
+                            <button class="text-bsf-green hover:text-bsf-green-dark">
+                                <i class="fas fa-comment"></i>
+                            </button>
+                            <button class="text-bsf-green hover:text-bsf-green-dark">
+                                <i class="fas fa-user-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Alumni Card 2 -->
+                    <div class="bg-gray-50 rounded-xl p-4 hover-lift cursor-pointer">
+                        <!-- Profile photo of a professional young woman -->
+                        <img src="https://pixabay.com/get/ga7a078bd851d7a4493f850348cd48fbbfd913547d699a0348cd3448c8a222d1937243a9f99cc3f8a481d6635a31a4cdd56e3be16e6e1a6c0cd87b6d8bea86263_1280.jpg" 
+                             alt="Grace Wilson" 
+                             class="w-16 h-16 rounded-full object-cover mx-auto mb-3">
+                        <h4 class="font-medium text-dark-gray text-center">Grace Wilson</h4>
+                        <p class="text-sm text-gray-600 text-center">Class of 2021</p>
+                        <p class="text-xs text-bsf-green text-center mt-1">Secretary 2020/21</p>
+                        <div class="flex justify-center space-x-2 mt-3">
+                            <button class="text-bsf-green hover:text-bsf-green-dark">
+                                <i class="fas fa-comment"></i>
+                            </button>
+                            <button class="text-bsf-green hover:text-bsf-green-dark">
+                                <i class="fas fa-user-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Alumni Card 3 -->
+                    <div class="bg-gray-50 rounded-xl p-4 hover-lift cursor-pointer">
+                        <!-- Profile photo of a young man with glasses -->
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" 
+                             alt="David Chen" 
+                             class="w-16 h-16 rounded-full object-cover mx-auto mb-3">
+                        <h4 class="font-medium text-dark-gray text-center">David Chen</h4>
+                        <p class="text-sm text-gray-600 text-center">Class of 2019</p>
+                        <p class="text-xs text-bsf-green text-center mt-1">Treasurer 2018/19</p>
+                        <div class="flex justify-center space-x-2 mt-3">
+                            <button class="text-bsf-green hover:text-bsf-green-dark">
+                                <i class="fas fa-comment"></i>
+                            </button>
+                            <button class="text-bsf-green hover:text-bsf-green-dark">
+                                <i class="fas fa-user-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Alumni Card 4 -->
+                    <div class="bg-gray-50 rounded-xl p-4 hover-lift cursor-pointer">
+                        <!-- Profile photo of a young woman with curly hair -->
+                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" 
+                             alt="Maria Santos" 
+                             class="w-16 h-16 rounded-full object-cover mx-auto mb-3">
+                        <h4 class="font-medium text-dark-gray text-center">Maria Santos</h4>
+                        <p class="text-sm text-gray-600 text-center">Class of 2022</p>
+                        <p class="text-xs text-bsf-green text-center mt-1">Choir Director</p>
+                        <div class="flex justify-center space-x-2 mt-3">
+                            <button class="text-bsf-green hover:text-bsf-green-dark">
+                                <i class="fas fa-comment"></i>
+                            </button>
+                            <button class="text-bsf-green hover:text-bsf-green-dark">
+                                <i class="fas fa-user-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Job Board & Mentorship -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            
+            <!-- Job Board -->
+            <div class="bg-white rounded-xl shadow-sm">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-dark-gray">Recent Job Posts</h3>
+                        <button class="text-bsf-green hover:text-bsf-green-dark text-sm font-medium">View All Jobs</button>
+                    </div>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-bsf-green transition-colors cursor-pointer">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h4 class="font-medium text-dark-gray">Software Developer</h4>
+                                <p class="text-sm text-gray-600 mt-1">TechCorp Inc. • Remote</p>
+                                <p class="text-xs text-gray-500 mt-2">Posted by David Chen • 2 days ago</p>
+                            </div>
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Full-time</span>
+                        </div>
+                        <p class="text-sm text-gray-700 mt-3">Looking for a passionate developer to join our growing team...</p>
+                        <div class="flex items-center justify-between mt-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs text-gray-500">$70k-90k</span>
+                                <span class="text-xs text-gray-400">•</span>
+                                <span class="text-xs text-gray-500">5 applicants</span>
+                            </div>
+                            <button class="text-bsf-green hover:text-bsf-green-dark text-sm font-medium">Apply</button>
+                        </div>
+                    </div>
+                    
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-bsf-green transition-colors cursor-pointer">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h4 class="font-medium text-dark-gray">Marketing Intern</h4>
+                                <p class="text-sm text-gray-600 mt-1">Creative Agency • New York</p>
+                                <p class="text-xs text-gray-500 mt-2">Posted by Grace Wilson • 1 week ago</p>
+                            </div>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Internship</span>
+                        </div>
+                        <p class="text-sm text-gray-700 mt-3">Great opportunity for recent graduates to gain marketing experience...</p>
+                        <div class="flex items-center justify-between mt-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs text-gray-500">$15/hr</span>
+                                <span class="text-xs text-gray-400">•</span>
+                                <span class="text-xs text-gray-500">12 applicants</span>
+                            </div>
+                            <button class="text-bsf-green hover:text-bsf-green-dark text-sm font-medium">Apply</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mentorship Matching -->
+            <div class="bg-white rounded-xl shadow-sm">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-dark-gray">Mentorship Program</h3>
+                        <button class="text-bsf-green hover:text-bsf-green-dark text-sm font-medium">Join Program</button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="text-center mb-6">
+                        <div class="bg-bsf-green-light p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                            <i class="fas fa-handshake text-bsf-green text-2xl"></i>
+                        </div>
+                        <h4 class="font-medium text-dark-gray mb-2">Connect with Alumni</h4>
+                        <p class="text-sm text-gray-600">Get matched with experienced alumni for career guidance and spiritual growth.</p>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-bsf-green rounded-full flex items-center justify-center">
+                                    <span class="text-white text-xs font-bold">24</span>
+                                </div>
+                                <span class="text-sm text-dark-gray">Active Mentors</span>
+                            </div>
+                            <i class="fas fa-users text-bsf-green"></i>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-accent-blue rounded-full flex items-center justify-center">
+                                    <span class="text-white text-xs font-bold">18</span>
+                                </div>
+                                <span class="text-sm text-dark-gray">Seeking Mentors</span>
+                            </div>
+                            <i class="fas fa-user-graduate text-accent-blue"></i>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white text-xs font-bold">42</span>
+                                </div>
+                                <span class="text-sm text-dark-gray">Successful Matches</span>
+                            </div>
+                            <i class="fas fa-check-circle text-green-500"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 space-y-2">
+                        <button class="w-full bg-bsf-green text-white py-2 rounded-lg hover:bg-bsf-green-dark transition-colors">
+                            Become a Mentor
+                        </button>
+                        <button class="w-full border border-bsf-green text-bsf-green py-2 rounded-lg hover:bg-bsf-green-light transition-colors">
+                            Find a Mentor
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fellowship Timeline -->
+        <div class="bg-white rounded-xl shadow-sm mb-8">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-dark-gray">Fellowship History Timeline</h3>
+                    <button class="text-bsf-green hover:text-bsf-green-dark text-sm font-medium">View Full History</button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="relative">
+                    <div class="space-y-6">
+                        <!-- Timeline Item 1 -->
+                        <div class="relative timeline-item pl-10">
+                            <div class="absolute left-0 top-0 w-8 h-8 bg-bsf-green rounded-full flex items-center justify-center">
+                                <span class="text-white text-xs font-bold">24</span>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="font-medium text-dark-gray">2024 Leadership</h4>
+                                    <span class="text-xs text-gray-500">Current</span>
+                                </div>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                                    <div>
+                                        <p class="text-gray-600">President</p>
+                                        <p class="font-medium">Michael Peters</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600">Vice President</p>
+                                        <p class="font-medium">Sarah Johnson</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600">Secretary</p>
+                                        <p class="font-medium">Grace Wilson</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600">Treasurer</p>
+                                        <p class="font-medium">David Chen</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Timeline Item 2 -->
+                        <div class="relative timeline-item pl-10">
+                            <div class="absolute left-0 top-0 w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                                <span class="text-white text-xs font-bold">23</span>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="font-medium text-dark-gray">2023 Major Events</h4>
+                                    <span class="text-xs text-gray-500">12 months ago</span>
+                                </div>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-calendar-alt text-bsf-green"></i>
+                                        <span>Annual Fellowship Camp - 150 attendees</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-heart text-red-500"></i>
+                                        <span>Community Outreach Program launched</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-graduation-cap text-blue-500"></i>
+                                        <span>Scholarship Fund established</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Timeline Item 3 -->
+                        <div class="relative timeline-item pl-10">
+                            <div class="absolute left-0 top-0 w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                                <span class="text-white text-xs font-bold">22</span>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="font-medium text-dark-gray">2022 Milestone Year</h4>
+                                    <span class="text-xs text-gray-500">2 years ago</span>
+                                </div>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-trophy text-yellow-500"></i>
+                                        <span>BSF reached 1000+ active alumni</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-church text-bsf-green"></i>
+                                        <span>New Fellowship Hall dedication</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resource Hub Preview -->
+        <div class="bg-white rounded-xl shadow-sm">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-dark-gray">Resource Hub</h3>
+                    <button class="text-bsf-green hover:text-bsf-green-dark text-sm font-medium">Browse All</button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Resource Card 1 -->
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-bsf-green transition-colors cursor-pointer">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="bg-red-100 p-2 rounded-lg">
+                                <i class="fas fa-file-pdf text-red-600"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-medium text-dark-gray text-sm">Daily Devotionals</h4>
+                                <p class="text-xs text-gray-500">PDF • 15 downloads</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600">30-day devotional guide for spiritual growth and daily reflection.</p>
+                        <button class="mt-3 text-bsf-green hover:text-bsf-green-dark text-sm font-medium">Download</button>
+                    </div>
+                    
+                    <!-- Resource Card 2 -->
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-bsf-green transition-colors cursor-pointer">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="bg-green-100 p-2 rounded-lg">
+                                <i class="fas fa-microphone text-green-600"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-medium text-dark-gray text-sm">Sunday Sermons</h4>
+                                <p class="text-xs text-gray-500">Audio • 42 files</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600">Collection of inspiring Sunday sermons from our fellowship leaders.</p>
+                        <button class="mt-3 text-bsf-green hover:text-bsf-green-dark text-sm font-medium">Listen</button>
+                    </div>
+                    
+                    <!-- Resource Card 3 -->
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-bsf-green transition-colors cursor-pointer">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="bg-blue-100 p-2 rounded-lg">
+                                <i class="fas fa-video text-blue-600"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-medium text-dark-gray text-sm">Training Videos</h4>
+                                <p class="text-xs text-gray-500">Video • 8 courses</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600">Leadership and ministry training videos for personal development.</p>
+                        <button class="mt-3 text-bsf-green hover:text-bsf-green-dark text-sm font-medium">Watch</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Modal (Hidden by default) -->
+    <div id="chat-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center h-full p-4">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl h-96">
+                <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                    <h3 class="font-semibold text-dark-gray">Chat with Grace Wilson</h3>
+                    <button id="close-chat" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="flex-1 p-4 h-72 overflow-y-auto">
+                    <div class="space-y-4">
+                        <!-- Incoming message -->
+                        <div class="flex items-start space-x-3">
+                            <!-- Profile photo of Grace Wilson -->
+                            <img src="https://pixabay.com/get/g8fef04991e28eb504403134a329055db22efa994785f46d83fab5e82057d73951decc443188520de988b47a3bc2c7c0464b4be725b8680d07ac394f0a046e550_1280.jpg" 
+                                 alt="Grace Wilson" 
+                                 class="w-8 h-8 rounded-full object-cover">
+                            <div class="chat-bubble bg-gray-100 p-3 rounded-lg">
+                                <p class="text-sm text-dark-gray">Thanks for the prayer request! I'll keep you in my prayers.</p>
+                                <p class="text-xs text-gray-500 mt-1">2:30 PM</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Outgoing message -->
+                        <div class="flex items-start space-x-3 justify-end">
+                            <div class="chat-bubble bg-bsf-green text-white p-3 rounded-lg">
+                                <p class="text-sm">Thank you so much! God bless you.</p>
+                                <p class="text-xs text-bsf-green-light mt-1">2:32 PM</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-4 border-t border-gray-200">
+                    <div class="flex items-center space-x-3">
+                        <input type="text" placeholder="Type your message..." class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bsf-green focus:border-transparent">
+                        <button class="bg-bsf-green text-white p-2 rounded-lg hover:bg-bsf-green-dark transition-colors">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+
+        // Chat modal functionality
+        const chatModal = document.getElementById('chat-modal');
+        const closeChatBtn = document.getElementById('close-chat');
+        const openChatBtns = document.querySelectorAll('[data-open-chat]');
+        
+        if (chatModal && closeChatBtn) {
+            // Open chat modal
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('[data-open-chat]') || e.target.textContent === 'Open Chat') {
+                    chatModal.classList.remove('hidden');
+                }
+            });
+            
+            // Close chat modal
+            closeChatBtn.addEventListener('click', () => {
+                chatModal.classList.add('hidden');
+            });
+            
+            // Close on backdrop click
+            chatModal.addEventListener('click', (e) => {
+                if (e.target === chatModal) {
+                    chatModal.classList.add('hidden');
+                }
+            });
+        }
+
+        // Simulate real-time updates
+        setInterval(() => {
+            // TODO: Implement real-time chat updates via AJAX
+            // TODO: Update birthday notifications
+            // TODO: Refresh notification counts
+        }, 30000);
+
+        // Form validation and submission handlers
+        document.addEventListener('submit', (e) => {
+            // TODO: Implement form validation
+            // TODO: Handle AJAX form submissions
+            // TODO: Show loading states and success/error messages
+        });
+    })();
+    </script>
+</body>
+</html>

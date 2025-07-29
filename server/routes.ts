@@ -66,25 +66,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/users/:id/executive-roles', isAuthenticated, async (req, res) => {
+  app.get('/api/users/:id/executive-posts', isAuthenticated, async (req, res) => {
     try {
-      const roles = await storage.getUserExecutiveRoles(req.params.id);
-      res.json(roles);
+      const posts = await storage.getUserExecutivePosts(req.params.id);
+      res.json(posts);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch executive roles" });
+      res.status(500).json({ message: "Failed to fetch executive posts" });
     }
   });
 
-  app.post('/api/users/:id/executive-roles', isAuthenticated, async (req: any, res) => {
+  app.post('/api/users/:id/executive-posts', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       if (userId !== req.params.id) {
         return res.status(403).json({ message: "Forbidden" });
       }
       
-      const roleData = insertExecutiveRoleSchema.parse({ ...req.body, userId });
-      const role = await storage.createExecutiveRole(roleData);
-      res.json(role);
+      const postData = insertExecutivePostSchema.parse({ ...req.body, userId });
+      const post = await storage.createExecutivePost(postData);
+      res.json(post);
     } catch (error) {
       res.status(400).json({ message: "Invalid request data" });
     }
@@ -629,7 +629,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (postType === "executive") {
         await storage.createExecutivePost({
           userId,
-          position: req.body.position,
+          postTitle: req.body.postTitle,
           session,
         });
       } else if (postType === "family") {
@@ -647,7 +647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (postType === "other") {
         await storage.createOtherPost({
           userId,
-          postName: req.body.postName,
+          postTitle: req.body.postTitle,
           session,
         });
       }

@@ -8,9 +8,6 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
-}
 
 const getOidcConfig = memoize(
   async () => {
@@ -67,6 +64,13 @@ async function upsertUser(
 }
 
 export async function setupAuth(app: Express) {
+  if (!process.env.REPLIT_DOMAINS) {
+    console.warn(
+      "REPLIT_DOMAINS environment variable not set, skipping Replit auth.",
+    );
+    return;
+  }
+
   app.set("trust proxy", 1);
   app.use(getSession());
   app.use(passport.initialize());
@@ -84,8 +88,7 @@ export async function setupAuth(app: Express) {
     verified(null, user);
   };
 
-  for (const domain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
+  for (const domain of process.env.REPLIT_DOMAINS.split(",")) {
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
