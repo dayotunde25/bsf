@@ -652,10 +652,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Log the role assignment activity
+      await storage.logUserActivity({
+        userId,
+        activityType: "post_assigned",
+        description: `Assigned ${postType} post by admin`,
+        metadata: { postType, session, assignedBy: req.user.claims.sub },
+      });
+
       res.json({ message: "Post assigned successfully" });
     } catch (error) {
       console.error("Error assigning post:", error);
       res.status(500).json({ message: "Failed to assign post" });
+    }
+  });
+
+  // Advanced admin features
+  app.get("/api/admin/users/filter", isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (!currentUser?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { role, withoutPosts, session } = req.query;
+      
+      let users = [];
+      if (role) {
+        users = await storage.getUsersByRole(role as string);
+      } else if (withoutPosts === 'true') {
+        users = await storage.getUsersWithoutPosts();
+      } else if (session) {
+        const executivePosts = await storage.getExecutivePostsBySession(session as string);
+        const userIds = executivePosts.map(p => p.userId);
+        users = await storage.getAllUsers();
+        users = users.filter(u => userIds.includes(u.id));
+      } else {
+        users = await storage.getAllUsers();
+      }
+
+      res.json(users);
+    } catch (error) {
+      console.error("Error filtering users:", error);
+      res.status(500).json({ message: "Failed to filter users" });
+    }
+  });
+
+  app.post("/api/admin/bulk-update-roles", isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (!currentUser?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { updates } = req.body;
+      await storage.bulkUpdateUserRoles(updates);
+
+      // Log bulk update activity
+      await storage.logUserActivity({
+        userId: req.user.claims.sub,
+        activityType: "bulk_role_update",
+        description: `Updated roles for ${updates.length} users`,
+        metadata: { updateCount: updates.length },
+      });
+
+      res.json({ message: "Bulk role update completed successfully" });
+    } catch (error) {
+      console.error("Error in bulk update:", error);
+      res.status(500).json({ message: "Failed to perform bulk update" });
+    }
+  });
+
+  app.get("/api/admin/user/:userId/history", isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (!currentUser?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { userId } = req.params;
+      const [roleHistory, activityLog] = await Promise.all([
+        storage.getUserRoleHistory(userId),
+        storage.getUserActivityLog(userId),
+      ]);
+
+      res.json({ roleHistory, activityLog });
+    } catch (error) {
+      console.error("Error fetching user history:", error);
+      res.status(500).json({ message: "Failed to fetch user history" });
     }
   });
 

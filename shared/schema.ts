@@ -222,6 +222,33 @@ export const fellowshipHistory = pgTable("fellowship_history", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Role history tracking table
+export const roleHistory = pgTable("role_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  previousRole: varchar("previous_role"),
+  newRole: varchar("new_role").notNull(),
+  changedBy: varchar("changed_by").notNull().references(() => users.id),
+  changeReason: varchar("change_reason"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type RoleHistory = typeof roleHistory.$inferSelect;
+export type InsertRoleHistory = typeof roleHistory.$inferInsert;
+
+// User activity log table
+export const userActivityLog = pgTable("user_activity_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  activityType: varchar("activity_type").notNull(), // login, post_created, role_changed, etc.
+  description: varchar("description").notNull(),
+  metadata: jsonb("metadata"), // Additional data about the activity
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type UserActivityLog = typeof userActivityLog.$inferSelect;
+export type InsertUserActivityLog = typeof userActivityLog.$inferInsert;
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   executivePosts: many(executivePosts),
@@ -239,6 +266,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   jobPosts: many(jobPosts),
   jobApplications: many(jobApplications),
   mentorships: many(mentorships),
+  roleHistory: many(roleHistory),
+  activityLog: many(userActivityLog),
 }));
 
 export const executivePostsRelations = relations(executivePosts, ({ one }) => ({
@@ -307,6 +336,15 @@ export const jobApplicationsRelations = relations(jobApplications, ({ one }) => 
 export const mentorshipsRelations = relations(mentorships, ({ one }) => ({
   mentor: one(users, { fields: [mentorships.mentorId], references: [users.id] }),
   mentee: one(users, { fields: [mentorships.menteeId], references: [users.id] }),
+}));
+
+export const roleHistoryRelations = relations(roleHistory, ({ one }) => ({
+  user: one(users, { fields: [roleHistory.userId], references: [users.id] }),
+  changedBy: one(users, { fields: [roleHistory.changedBy], references: [users.id] }),
+}));
+
+export const userActivityLogRelations = relations(userActivityLog, ({ one }) => ({
+  user: one(users, { fields: [userActivityLog.userId], references: [users.id] }),
 }));
 
 // Insert schemas

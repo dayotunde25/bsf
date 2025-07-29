@@ -15,11 +15,15 @@ import {
   jobApplications,
   mentorships,
   fellowshipHistory,
+  roleHistory,
+  userActivityLog,
   type User,
   type UpsertUser,
   type ExecutivePost,
   type FamilyHead,
   type OtherPost,
+  type RoleHistory,
+  type UserActivityLog,
   type WorkerUnit,
   type Message,
   type Media,
@@ -47,9 +51,11 @@ import {
   type InsertJobApplication,
   type InsertMentorship,
   type InsertFellowshipHistory,
+  type InsertRoleHistory,
+  type InsertUserActivityLog,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, like, count, sql } from "drizzle-orm";
+import { eq, desc, and, or, like, count, sql, not, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
@@ -70,6 +76,18 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   getUserWithPosts(userId: string): Promise<User & { executivePosts: ExecutivePost[]; familyHeads: FamilyHead[]; workerUnits: WorkerUnit[]; otherPosts: OtherPost[] }>;
   updateUserAcademicInfo(userId: string, info: { department?: string; academicLevel?: string }): Promise<void>;
+  
+  // Role history and activity tracking
+  createRoleHistory(history: InsertRoleHistory): Promise<RoleHistory>;
+  getUserRoleHistory(userId: string): Promise<RoleHistory[]>;
+  logUserActivity(activity: InsertUserActivityLog): Promise<UserActivityLog>;
+  getUserActivityLog(userId: string): Promise<UserActivityLog[]>;
+  
+  // Advanced admin features
+  bulkUpdateUserRoles(updates: { userId: string; role: string; canPostAnnouncements: boolean }[]): Promise<void>;
+  getExecutivePostsBySession(session: string): Promise<ExecutivePost[]>;
+  getUsersWithoutPosts(): Promise<User[]>;
+  getUsersByRole(role: string): Promise<User[]>;
   
   // Worker units
   createWorkerUnit(unit: InsertWorkerUnit): Promise<WorkerUnit>;
@@ -211,8 +229,66 @@ export class DatabaseStorage implements IStorage {
   async updateUserAcademicInfo(userId: string, info: { department?: string; academicLevel?: string }): Promise<void> {
     await db
       .update(users)
-      .set(info)
+      .set({
+        department: info.department,
+        academicLevel: info.academicLevel as any,
+      })
       .where(eq(users.id, userId));
+  }
+
+  // Role history and activity tracking
+  async createRoleHistory(history: InsertRoleHistory): Promise<RoleHistory> {
+    const [newHistory] = await db.insert(roleHistory).values(history).returning();
+    return newHistory;
+  }
+
+  async getUserRoleHistory(userId: string): Promise<RoleHistory[]> {
+    return await db.select().from(roleHistory).where(eq(roleHistory.userId, userId)).orderBy(desc(roleHistory.createdAt));
+  }
+
+  async logUserActivity(activity: InsertUserActivityLog): Promise<UserActivityLog> {
+    const [newActivity] = await db.insert(userActivityLog).values(activity).returning();
+    return newActivity;
+  }
+
+  async getUserActivityLog(userId: string): Promise<UserActivityLog[]> {
+    return await db.select().from(userActivityLog).where(eq(userActivityLog.userId, userId)).orderBy(desc(userActivityLog.createdAt));
+  }
+
+  // Advanced admin features
+  async bulkUpdateUserRoles(updates: { userId: string; role: string; canPostAnnouncements: boolean }[]): Promise<void> {
+    await Promise.all(updates.map(update => 
+      db.update(users)
+        .set({ role: update.role as any, canPostAnnouncements: update.canPostAnnouncements })
+        .where(eq(users.id, update.userId))
+    ));
+  }
+
+  async getExecutivePostsBySession(session: string): Promise<ExecutivePost[]> {
+    return await db.select().from(executivePosts).where(eq(executivePosts.session, session));
+  }
+
+  async getUsersWithoutPosts(): Promise<User[]> {
+    // Users who don't have any executive posts, family heads, worker units, or other posts
+    const usersWithPosts = await db
+      .selectDistinct({ userId: executivePosts.userId })
+      .from(executivePosts)
+      .union(
+        db.selectDistinct({ userId: familyHeads.userId }).from(familyHeads)
+      )
+      .union(
+        db.selectDistinct({ userId: workerUnits.userId }).from(workerUnits)
+      )
+      .union(
+        db.selectDistinct({ userId: otherPosts.userId }).from(otherPosts)
+      );
+
+    const userIds = usersWithPosts.map(u => u.userId);
+    return await db.select().from(users).where(not(inArray(users.id, userIds)));
+  }
+
+  async getUsersByRole(role: string): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.role, role as any));
   }
 
   // Worker units
