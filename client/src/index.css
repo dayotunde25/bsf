@@ -1,0 +1,171 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(222, 84%, 4.9%);
+  --muted: hsl(210, 40%, 98%);
+  --muted-foreground: hsl(215, 16%, 47%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(222, 84%, 4.9%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(222, 84%, 4.9%);
+  --border: hsl(214, 32%, 91%);
+  --input: hsl(214, 32%, 91%);
+  --primary: hsl(146, 39%, 73%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(210, 40%, 98%);
+  --secondary-foreground: hsl(222, 84%, 4.9%);
+  --accent: hsl(210, 40%, 98%);
+  --accent-foreground: hsl(222, 84%, 4.9%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --ring: hsl(146, 39%, 73%);
+  --radius: 0.5rem;
+  --bsf-green: hsl(146, 39%, 73%);
+  --bsf-green-dark: hsl(146, 39%, 63%);
+  --bsf-green-light: hsl(146, 39%, 83%);
+  --dark-gray: hsl(215, 25%, 27%);
+  --accent-blue: hsl(209, 79%, 59%);
+}
+
+.dark {
+  --background: hsl(222, 84%, 4.9%);
+  --foreground: hsl(210, 40%, 98%);
+  --muted: hsl(217, 32%, 17%);
+  --muted-foreground: hsl(215, 20%, 65%);
+  --popover: hsl(222, 84%, 4.9%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  --card: hsl(222, 84%, 4.9%);
+  --card-foreground: hsl(210, 40%, 98%);
+  --border: hsl(217, 32%, 17%);
+  --input: hsl(217, 32%, 17%);
+  --primary: hsl(146, 39%, 73%);
+  --primary-foreground: hsl(222, 84%, 4.9%);
+  --secondary: hsl(217, 32%, 17%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  --accent: hsl(217, 32%, 17%);
+  --accent-foreground: hsl(210, 40%, 98%);
+  --destructive: hsl(0, 63%, 31%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --ring: hsl(146, 39%, 73%);
+  --bsf-green: hsl(146, 39%, 73%);
+  --bsf-green-dark: hsl(146, 39%, 63%);
+  --bsf-green-light: hsl(146, 39%, 83%);
+  --dark-gray: hsl(215, 25%, 27%);
+  --accent-blue: hsl(209, 79%, 59%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+  .bsf-gradient {
+    background: linear-gradient(to right, var(--bsf-green), var(--bsf-green-dark));
+  }
+
+  .hover-lift {
+    transition: all 0.3s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .chat-bubble {
+    max-width: 70%;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 25px;
+    height: calc(100% + 20px);
+    width: 2px;
+    background: var(--bsf-green);
+  }
+
+  .timeline-item:last-child::before {
+    display: none;
+  }
+
+  .text-bsf-green {
+    color: var(--bsf-green);
+  }
+
+  .text-bsf-green-dark {
+    color: var(--bsf-green-dark);
+  }
+
+  .text-bsf-green-light {
+    color: var(--bsf-green-light);
+  }
+
+  .text-dark-gray {
+    color: var(--dark-gray);
+  }
+
+  .text-accent-blue {
+    color: var(--accent-blue);
+  }
+
+  .bg-bsf-green {
+    background-color: var(--bsf-green);
+  }
+
+  .bg-bsf-green-dark {
+    background-color: var(--bsf-green-dark);
+  }
+
+  .bg-bsf-green-light {
+    background-color: var(--bsf-green-light);
+  }
+
+  .bg-dark-gray {
+    background-color: var(--dark-gray);
+  }
+
+  .bg-accent-blue {
+    background-color: var(--accent-blue);
+  }
+
+  .border-bsf-green {
+    border-color: var(--bsf-green);
+  }
+
+  .hover\:bg-bsf-green-dark:hover {
+    background-color: var(--bsf-green-dark);
+  }
+
+  .hover\:text-bsf-green:hover {
+    color: var(--bsf-green);
+  }
+
+  .hover\:text-bsf-green-dark:hover {
+    color: var(--bsf-green-dark);
+  }
+
+  .hover\:border-bsf-green:hover {
+    border-color: var(--bsf-green);
+  }
+
+  .focus\:ring-bsf-green:focus {
+    --tw-ring-color: var(--bsf-green);
+  }
+}
