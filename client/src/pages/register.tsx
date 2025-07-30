@@ -17,7 +17,7 @@ export function RegisterPage() {
     setError("");
 
     try {
-      const response = await fetch("/register", {
+      const response = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, firstName, lastName }),
