@@ -32,6 +32,7 @@ export function setupAuth(app: Express) {
 
   passport.use(
     new LocalStrategy({ usernameField: "email" }, async (email, password, done) => {
+      console.log("LocalStrategy called with:", email, password);
       try {
         const user = await storage.getUserByEmail(email);
         if (!user) {

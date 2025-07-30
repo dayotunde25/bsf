@@ -43,9 +43,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
   // Auth routes
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.json({ success: true });
-  });
+  app.post(
+    "/api/login",
+    passport.authenticate("local", { failureRedirect: "/login?error=1" }),
+    (req, res) => {
+      res.json({ success: true });
+    },
+  );
 
   app.post("/api/logout", (req, res) => {
     req.logout((err) => {
