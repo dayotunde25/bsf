@@ -75,8 +75,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // In a real app, you would hash the password here
       const newUser = await storage.createUser(userData);
       res.json(newUser);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid user data" });
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      if (error?.issues) {
+        // Zod validation error
+        res.status(400).json({ message: "Validation failed", details: error.issues });
+      } else if (error?.code === '23505') {
+        // Unique violation (e.g., email already exists)
+        res.status(400).json({ message: "Email already registered" });
+      } else {
+        res.status(400).json({ message: error.message || "Invalid user data" });
+      }
     }
   });
 
