@@ -43,7 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
   // Auth routes
-  app.post("/login", (req, res, next) => {
+  app.post("/api/login", (req, res, next) => {
     passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) {
         return next(err);
@@ -60,7 +60,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     })(req, res, next);
   });
 
-  app.post("/logout", (req, res) => {
+  app.post("/api/logout", (req, res) => {
     req.logout((err) => {
       if (err) {
         return res.status(500).json({ message: "Error logging out" });
@@ -69,7 +69,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.post("/register", async (req, res) => {
+  app.post("/api/register", async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
       // In a real app, you would hash the password here
