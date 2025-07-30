@@ -43,7 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
   // Auth routes
-  app.post("/api/login", (req, res, next) => {
+  app.post("/login", (req, res, next) => {
     passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) {
         return next(err);
@@ -60,7 +60,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     })(req, res, next);
   });
 
-  app.post("/api/logout", (req, res) => {
+  app.post("/logout", (req, res) => {
     req.logout((err) => {
       if (err) {
         return res.status(500).json({ message: "Error logging out" });
@@ -69,7 +69,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.post("/api/register", async (req, res) => {
+  app.post("/register", async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
       // In a real app, you would hash the password here
@@ -80,12 +80,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/auth/user", isAuthenticated, (req: any, res) => {
+  app.get("/auth/user", isAuthenticated, (req: any, res) => {
     res.json(req.user);
   });
 
   // User profile routes
-  app.get('/api/users/:id', isAuthenticated, async (req, res) => {
+  app.get('/users/:id', isAuthenticated, async (req, res) => {
     try {
       const user = await storage.getUser(req.params.id);
       if (!user) {
@@ -97,7 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/users/:id/executive-posts', async (req, res) => {
+  app.get('/users/:id/executive-posts', async (req, res) => {
     try {
       const posts = await storage.getUserExecutivePosts(req.params.id);
       res.json(posts);
@@ -106,7 +106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/users/:id/executive-posts', isAuthenticated, async (req: any, res) => {
+  app.post('/users/:id/executive-posts', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       if (userId !== req.params.id) {
@@ -121,7 +121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/users/:id/worker-units', async (req, res) => {
+  app.get('/users/:id/worker-units', async (req, res) => {
     try {
       const units = await storage.getUserWorkerUnits(req.params.id);
       res.json(units);
@@ -130,7 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/users/:id/worker-units', isAuthenticated, async (req: any, res) => {
+  app.post('/users/:id/worker-units', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       if (userId !== req.params.id) {
@@ -146,7 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Dashboard routes
-  app.get('/api/dashboard/stats', async (req, res) => {
+  app.get('/dashboard/stats', async (req, res) => {
     try {
       const stats = await storage.getUserStats();
       res.json(stats);
@@ -155,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/dashboard/birthdays', async (req, res) => {
+  app.get('/dashboard/birthdays', async (req, res) => {
     try {
       const birthdays = await storage.getTodaysBirthdays();
       res.json(birthdays);
@@ -165,7 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Chat routes
-  app.get('/api/chat/conversations', isAuthenticated, async (req: any, res) => {
+  app.get('/chat/conversations', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const conversations = await storage.getUserConversations(userId);
@@ -175,7 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/chat/messages/:otherUserId', isAuthenticated, async (req: any, res) => {
+  app.get('/chat/messages/:otherUserId', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const messages = await storage.getConversation(userId, req.params.otherUserId);
@@ -185,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/chat/messages', isAuthenticated, async (req: any, res) => {
+  app.post('/chat/messages', isAuthenticated, async (req: any, res) => {
     try {
       const senderId = req.user.id;
       const messageData = insertMessageSchema.parse({ ...req.body, senderId });
@@ -196,7 +196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/chat/mark-read', isAuthenticated, async (req: any, res) => {
+  app.post('/chat/mark-read', isAuthenticated, async (req: any, res) => {
     try {
       const receiverId = req.user.id;
       const { senderId } = req.body;
@@ -208,7 +208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Directory routes
-  app.get('/api/directory', async (req, res) => {
+  app.get('/directory', async (req, res) => {
     try {
       const { search } = req.query;
       let users;
@@ -226,7 +226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Gallery routes
-  app.get('/api/gallery', async (req, res) => {
+  app.get('/gallery', async (req, res) => {
     try {
       const { eventType, session } = req.query;
       const media = await storage.getApprovedMedia(
@@ -239,7 +239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/gallery', isAuthenticated, upload.single('file'), async (req: any, res) => {
+  app.post('/gallery', isAuthenticated, upload.single('file'), async (req: any, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
@@ -265,7 +265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Announcements routes
-  app.get('/api/announcements', async (req, res) => {
+  app.get('/announcements', async (req, res) => {
     try {
       const announcements = await storage.getAnnouncements();
       res.json(announcements);
@@ -274,7 +274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/announcements', isAuthenticated, async (req: any, res) => {
+  app.post('/announcements', isAuthenticated, async (req: any, res) => {
     try {
       const authorId = req.user.id;
       const announcementData = insertAnnouncementSchema.parse({ ...req.body, authorId });
@@ -285,7 +285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/announcements/:id/rsvp', isAuthenticated, async (req: any, res) => {
+  app.post('/announcements/:id/rsvp', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const rsvpData = insertRsvpSchema.parse({
@@ -300,7 +300,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/announcements/:id/rsvp', isAuthenticated, async (req: any, res) => {
+  app.get('/announcements/:id/rsvp', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const rsvp = await storage.getUserRsvp(userId, req.params.id);
@@ -311,7 +311,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Resources routes
-  app.get('/api/resources', async (req, res) => {
+  app.get('/resources', async (req, res) => {
     try {
       const { category } = req.query;
       const resources = await storage.getApprovedResources(category as string);
@@ -321,7 +321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/resources', isAuthenticated, upload.single('file'), async (req: any, res) => {
+  app.post('/resources', isAuthenticated, upload.single('file'), async (req: any, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
@@ -346,7 +346,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/resources/:id/download', async (req, res) => {
+  app.post('/resources/:id/download', async (req, res) => {
     try {
       await storage.incrementResourceDownload(req.params.id);
       res.json({ success: true });
@@ -356,7 +356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Prayer Wall routes
-  app.get('/api/prayer-wall', async (req, res) => {
+  app.get('/prayer-wall', async (req, res) => {
     try {
       const prayers = await storage.getApprovedPrayerWall();
       res.json(prayers);
@@ -365,7 +365,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/prayer-wall', isAuthenticated, async (req: any, res) => {
+  app.post('/prayer-wall', isAuthenticated, async (req: any, res) => {
     try {
       const authorId = req.user.id;
       const prayerData = insertPrayerWallSchema.parse({ ...req.body, authorId });
@@ -376,7 +376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/prayer-wall/:id/support', isAuthenticated, async (req: any, res) => {
+  app.post('/prayer-wall/:id/support', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const supportData = insertPrayerSupportSchema.parse({
@@ -390,7 +390,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/prayer-wall/:id/support', isAuthenticated, async (req: any, res) => {
+  app.get('/prayer-wall/:id/support', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const support = await storage.getUserPrayerSupport(userId, req.params.id);
@@ -401,7 +401,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Job Board routes
-  app.get('/api/jobs', async (req, res) => {
+  app.get('/jobs', async (req, res) => {
     try {
       const jobs = await storage.getApprovedJobPosts();
       res.json(jobs);
@@ -410,7 +410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/jobs', isAuthenticated, async (req: any, res) => {
+  app.post('/jobs', isAuthenticated, async (req: any, res) => {
     try {
       const posterId = req.user.id;
       const jobData = insertJobPostSchema.parse({ ...req.body, posterId });
@@ -421,7 +421,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/jobs/:id/apply', isAuthenticated, async (req: any, res) => {
+  app.post('/jobs/:id/apply', isAuthenticated, async (req: any, res) => {
     try {
       const applicantId = req.user.id;
       const applicationData = insertJobApplicationSchema.parse({
@@ -436,7 +436,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/jobs/:id/application', isAuthenticated, async (req: any, res) => {
+  app.get('/jobs/:id/application', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const application = await storage.getUserJobApplication(userId, req.params.id);
@@ -447,7 +447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Mentorship routes
-  app.get('/api/mentorship/mentors', async (req, res) => {
+  app.get('/mentorship/mentors', async (req, res) => {
     try {
       const mentors = await storage.getAvailableMentors();
       res.json(mentors);
@@ -456,7 +456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/mentorship/mentees', async (req, res) => {
+  app.get('/mentorship/mentees', async (req, res) => {
     try {
       const mentees = await storage.getMenteeRequests();
       res.json(mentees);
@@ -465,7 +465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/mentorship/matches', async (req, res) => {
+  app.get('/mentorship/matches', async (req, res) => {
     try {
       const matches = await storage.getMentorshipMatches();
       res.json(matches);
@@ -474,7 +474,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/mentorship', isAuthenticated, async (req: any, res) => {
+  app.post('/mentorship', isAuthenticated, async (req: any, res) => {
     try {
       const mentorId = req.user.id;
       const mentorshipData = insertMentorshipSchema.parse({ ...req.body, mentorId });
@@ -486,7 +486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Fellowship History routes
-  app.get('/api/timeline', async (req, res) => {
+  app.get('/timeline', async (req, res) => {
     try {
       const history = await storage.getFellowshipHistory();
       res.json(history);
@@ -495,7 +495,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/timeline', isAuthenticated, async (req: any, res) => {
+  app.post('/timeline', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user as any;
       if (!user?.isAdmin) {
@@ -511,7 +511,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin routes
-  app.get('/api/admin/pending-media', isAuthenticated, async (req: any, res) => {
+  app.get('/admin/pending-media', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user as any;
       if (!user?.isAdmin) {
@@ -525,7 +525,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/admin/approve-media/:id', isAuthenticated, async (req: any, res) => {
+  app.post('/admin/approve-media/:id', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user as any;
       if (!user?.isAdmin) {
@@ -539,7 +539,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/pending-resources', isAuthenticated, async (req: any, res) => {
+  app.get('/admin/pending-resources', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user as any;
       if (!user?.isAdmin) {
@@ -553,7 +553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/admin/approve-resource/:id', isAuthenticated, async (req: any, res) => {
+  app.post('/admin/approve-resource/:id', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user as any;
       if (!user?.isAdmin) {
@@ -567,7 +567,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/pending-prayers', isAuthenticated, async (req: any, res) => {
+  app.get('/admin/pending-prayers', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user as any;
       if (!user?.isAdmin) {
@@ -581,7 +581,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/admin/approve-prayer/:id', isAuthenticated, async (req: any, res) => {
+  app.post('/admin/approve-prayer/:id', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user as any;
       if (!user?.isAdmin) {
@@ -595,7 +595,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/pending-jobs', isAuthenticated, async (req: any, res) => {
+  app.get('/admin/pending-jobs', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user as any;
       if (!user?.isAdmin) {
@@ -609,7 +609,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/admin/approve-job/:id', isAuthenticated, async (req: any, res) => {
+  app.post('/admin/approve-job/:id', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user as any;
       if (!user?.isAdmin) {
@@ -624,7 +624,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin role management routes
-  app.post("/api/admin/update-user-role/:userId", isAuthenticated, async (req: any, res) => {
+  app.post("/admin/update-user-role/:userId", isAuthenticated, async (req: any, res) => {
     try {
       const currentUser = req.user as any;
       if (!currentUser?.isAdmin) {
@@ -642,7 +642,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/assign-post", isAuthenticated, async (req: any, res) => {
+  app.post("/admin/assign-post", isAuthenticated, async (req: any, res) => {
     try {
       const currentUser = req.user as any;
       if (!currentUser?.isAdmin) {
@@ -699,7 +699,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Advanced admin features
-  app.get("/api/admin/users/filter", isAuthenticated, async (req: any, res) => {
+  app.get("/admin/users/filter", isAuthenticated, async (req: any, res) => {
     try {
       const currentUser = req.user as any;
       if (!currentUser?.isAdmin) {
@@ -729,7 +729,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/bulk-update-roles", isAuthenticated, async (req: any, res) => {
+  app.post("/admin/bulk-update-roles", isAuthenticated, async (req: any, res) => {
     try {
       const currentUser = req.user as any;
       if (!currentUser?.isAdmin) {
@@ -754,7 +754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/admin/user/:userId/history", isAuthenticated, async (req: any, res) => {
+  app.get("/admin/user/:userId/history", isAuthenticated, async (req: any, res) => {
     try {
       const currentUser = req.user as any;
       if (!currentUser?.isAdmin) {
@@ -775,7 +775,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Serve uploaded files
-  app.use('/api/uploads', express.static(uploadDir));
+  app.use('/uploads', express.static(uploadDir));
 
   const httpServer = createServer(app);
   return httpServer;
