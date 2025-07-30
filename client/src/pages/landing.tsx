@@ -83,7 +83,7 @@ export default function Landing() {
               asChild 
               className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800"
             >
-              <a href="/api/login">Sign In</a>
+              <a href="/login">Sign In</a>
             </Button>
           </div>
         </div>
@@ -115,7 +115,7 @@ export default function Landing() {
               asChild
               className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-lg px-8 py-3"
             >
-              <a href="/api/login">
+              <a href="/register">
                 <GraduationCap className="mr-2 h-5 w-5" />
                 Join Your Alumni Network
               </a>
@@ -200,7 +200,7 @@ export default function Landing() {
                 variant="secondary"
                 className="bg-white text-green-600 hover:bg-gray-100 text-lg px-8 py-3"
               >
-                <a href="/api/login">
+                <a href="/register">
                   <Globe className="mr-2 h-5 w-5" />
                   Get Started Today
                 </a>
