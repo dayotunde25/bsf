@@ -13,6 +13,27 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { Form, FormField, FormLabel, FormControl, FormMessage, FormItem } from "@/components/ui/form";
+import type { User } from "@shared/schema";
+import { useForm } from "react-hook-form";
+import { Textarea } from "@/components/ui/textarea";
+import { History, X } from "lucide-react";
+
+// Types
+interface ExtendedUser extends Omit<User, 'profileImageUrl'> {
+  isAdmin: boolean;
+  profileImageUrl: string | null;
+  canPostAnnouncements: boolean;
+}
+
+interface UpdateUserRole {
+  userId: string;
+  role: string;
+  canPostAnnouncements: boolean;
+}
+
+type QueryData<T> = T[] | undefined;
+
 import { 
   Shield, 
   Users, 
@@ -43,13 +64,24 @@ const EXECUTIVE_POSTS = [
 ];
 
 const OTHER_POSTS = [
-  "Building chairperson", "FYB chairperson", "House coordinator", "Assistant House coordinator"
+  "Building chairperson", "FYB chairperson", "Academic chairman", "House coordinator", "Assistant House coordinator"
 ];
 
 const ACADEMIC_LEVELS = ["ND1", "ND2", "HND1", "HND2"];
 
 export default function Admin() {
-  const { user } = useAuth();
+  const auth = useAuth();
+  const user = auth.user ? {
+    ...auth.user,
+    isAdmin: auth.user.role === 'Admin',
+    canPostAnnouncements: false,
+    profileImageUrl: auth.user.profileImageUrl || null,
+    password: '',
+    birthday: '',
+    attendanceYears: [],
+    department: '',
+    academicLevel: ''
+  } as unknown as ExtendedUser : null;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -76,33 +108,59 @@ export default function Admin() {
     }
   }, [user, toast]);
 
-  const { data: stats } = useQuery({
+  function handleMutationError(error: any) {
+    console.error('Mutation error:', error);
+    toast({
+      title: "Error",
+      description: isUnauthorizedError(error) 
+        ? "You are not authorized to perform this action" 
+        : error?.message || "An error occurred",
+      variant: "destructive",
+    });
+  }
+
+  const { data: stats, error: statsError } = useQuery<{
+    totalUsers: number;
+    totalJobs: number;
+    totalEvents: number;
+  }>({
     queryKey: ['/api/dashboard/stats'],
+    queryFn: () => apiRequest("GET", '/api/dashboard/stats'),
   });
 
-  const { data: pendingMedia } = useQuery({
+  const { data: pendingMedia, error: pendingMediaError } = useQuery<any[]>({
     queryKey: ['/api/admin/pending-media'],
+    queryFn: () => apiRequest("GET", '/api/admin/pending-media'),
+    initialData: [],
   });
 
-  const { data: pendingResources } = useQuery({
+  const { data: pendingResources, error: pendingResourcesError } = useQuery<any[]>({
     queryKey: ['/api/admin/pending-resources'],
+    queryFn: () => apiRequest("GET", '/api/admin/pending-resources'),
+    initialData: [],
   });
 
-  const { data: pendingPrayers } = useQuery({
+  const { data: pendingPrayers, error: pendingPrayersError } = useQuery<any[]>({
     queryKey: ['/api/admin/pending-prayers'],
+    queryFn: () => apiRequest("GET", '/api/admin/pending-prayers'),
+    initialData: [],
   });
 
-  const { data: pendingJobs } = useQuery({
+  const { data: pendingJobs, error: pendingJobsError } = useQuery<any[]>({
     queryKey: ['/api/admin/pending-jobs'],
+    queryFn: () => apiRequest("GET", '/api/admin/pending-jobs'),
+    initialData: [],
   });
 
-  const { data: users } = useQuery({
+  const { data: users } = useQuery<ExtendedUser[]>({
     queryKey: ['/api/directory'],
+    initialData: [],
   });
 
-  const { data: filteredUsers } = useQuery({
+  const { data: filteredUsers } = useQuery<ExtendedUser[]>({
     queryKey: ['/api/admin/users/filter', filterOptions],
     enabled: !!(filterOptions.role || filterOptions.withoutPosts || filterOptions.session),
+    initialData: [],
   });
 
   const { data: userHistory } = useQuery({
@@ -187,7 +245,7 @@ export default function Admin() {
   });
 
   const bulkUpdateMutation = useMutation({
-    mutationFn: async (updates: any[]) => {
+    mutationFn: async (updates: UpdateUserRole[]) => {
       return await apiRequest("POST", "/api/admin/bulk-update-roles", { updates });
     },
     onSuccess: () => {
@@ -214,24 +272,7 @@ export default function Admin() {
     setFilterOptions({ role: '', withoutPosts: false, session: '' });
   };
 
-  function handleMutationError(error: any) {
-    if (isUnauthorizedError(error)) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
-    }
-    toast({
-      title: "Error",
-      description: "There was an error processing your request.",
-      variant: "destructive",
-    });
-  }
+// handleMutationError is already defined above
 
   if (!user?.isAdmin) {
     return (
@@ -838,8 +879,21 @@ export default function Admin() {
 }
 
 // Bulk Update Form Component
-function BulkUpdateForm({ selectedUsers, users, onSubmit, isLoading }: any) {
-  const form = useForm({
+interface BulkUpdateFormProps {
+  selectedUsers: string[];
+  users: ExtendedUser[];
+  onSubmit: (updates: UpdateUserRole[]) => void;
+  isLoading: boolean;
+}
+
+interface BulkUpdateFormData {
+  role: string;
+  canPostAnnouncements: boolean;
+  changeReason: string;
+}
+
+function BulkUpdateForm({ selectedUsers, users, onSubmit, isLoading }: BulkUpdateFormProps) {
+  const form = useForm<BulkUpdateFormData>({
     defaultValues: {
       role: '',
       canPostAnnouncements: false,
@@ -847,8 +901,8 @@ function BulkUpdateForm({ selectedUsers, users, onSubmit, isLoading }: any) {
     }
   });
 
-  const handleSubmit = (data: any) => {
-    const updates = selectedUsers.map((userId: string) => ({
+  const handleSubmit = (data: BulkUpdateFormData) => {
+    const updates: UpdateUserRole[] = selectedUsers.map((userId) => ({
       userId,
       role: data.role,
       canPostAnnouncements: data.canPostAnnouncements

@@ -520,7 +520,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin routes
-  app.get('/admin/pending-media', isAuthenticated, async (req: any, res) => {
+  app.get('/api/admin/pending-media', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user as any;
       if (!user?.isAdmin) {
@@ -548,7 +548,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/admin/pending-resources', isAuthenticated, async (req: any, res) => {
+  app.get('/api/admin/pending-resources', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user as any;
       if (!user?.isAdmin) {
@@ -576,7 +576,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/admin/pending-prayers', isAuthenticated, async (req: any, res) => {
+  app.get('/api/admin/pending-prayers', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user as any;
       if (!user?.isAdmin) {
@@ -604,7 +604,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/admin/pending-jobs', isAuthenticated, async (req: any, res) => {
+  app.get('/api/admin/pending-jobs', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user as any;
       if (!user?.isAdmin) {
