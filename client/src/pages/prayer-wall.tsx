@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { Form } from "@/components/ui/form";
 import { 
   HandHelping, 
   Plus, 
@@ -33,42 +34,15 @@ export default function PrayerWall() {
   const [postDialogOpen, setPostDialogOpen] = useState(false);
   const [postType, setPostType] = useState<"prayer" | "testimony">("prayer");
 
-  const { data: prayerWall, isLoading } = useQuery({
+  const { data: prayerWallRaw, isLoading } = useQuery({
     queryKey: ['/api/prayer-wall'],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  const postMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return await apiRequest("POST", "/api/prayer-wall", data);
-    },
-    onSuccess: () => {
-      toast({
-        title: `${postType === 'prayer' ? 'Prayer request' : 'Testimony'} posted`,
-        description: "Your post is pending approval and will appear soon.",
-      });
-      setPostDialogOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/prayer-wall'] });
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: "Error posting",
-        description: "There was an error posting your message. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
+  // Ensure prayerWall is always an array
+  const prayerWall: any[] = Array.isArray(prayerWallRaw) ? prayerWallRaw : [];
+
+  // ...existing code...
 
   const supportMutation = useMutation({
     mutationFn: async (prayerId: string) => {
@@ -92,16 +66,37 @@ export default function PrayerWall() {
     },
   });
 
+  const postMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest("POST", "/api/prayer-wall", data);
+    },
+    onSuccess: () => {
+      toast({
+        title: `${postType === 'prayer' ? 'Prayer request' : 'Testimony'} posted`,
+        description: "Your post is pending approval and will appear soon.",
+      });
+      setPostDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/prayer-wall'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: isUnauthorizedError(error) 
+          ? "You must be logged in to post" 
+          : error?.message || "Failed to post",
+        variant: "destructive",
+      });
+    }
+  });
+
   const handlePost = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    
     const postData = {
       content: formData.get('content') as string,
       type: postType,
       isAnonymous: formData.get('anonymous') === 'on',
     };
-
     postMutation.mutate(postData);
   };
 
@@ -109,8 +104,8 @@ export default function PrayerWall() {
     supportMutation.mutate(prayerId);
   };
 
-  const prayerRequests = prayerWall?.filter((item: any) => item.type === 'prayer') || [];
-  const testimonies = prayerWall?.filter((item: any) => item.type === 'testimony') || [];
+  const prayerRequests = prayerWall.filter((item: any) => item.type === 'prayer');
+  const testimonies = prayerWall.filter((item: any) => item.type === 'testimony');
 
   if (isLoading) {
     return (

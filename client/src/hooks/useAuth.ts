@@ -8,6 +8,9 @@ export function useAuth() {
   const { data: user, isLoading } = useQuery<User>({
     queryKey: ["/auth/user"],
     retry: false,
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 
   const logout = async () => {

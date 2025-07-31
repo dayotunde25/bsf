@@ -70,18 +70,38 @@ const OTHER_POSTS = [
 const ACADEMIC_LEVELS = ["ND1", "ND2", "HND1", "HND2"];
 
 export default function Admin() {
-  const auth = useAuth();
-  const user = auth.user ? {
-    ...auth.user,
-    isAdmin: auth.user.role === 'Admin',
+  const { user: authUser, isLoading: authLoading } = useAuth();
+  const user = authUser ? {
+    ...authUser,
+    isAdmin: authUser.role === 'Admin',
     canPostAnnouncements: false,
-    profileImageUrl: auth.user.profileImageUrl || null,
+    profileImageUrl: authUser.profileImageUrl || null,
     password: '',
     birthday: '',
     attendanceYears: [],
     department: '',
     academicLevel: ''
   } as unknown as ExtendedUser : null;
+
+  // Show loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-bsf-green mx-auto mb-4" />
+            <p className="text-gray-500">Loading...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show not authenticated state
+  if (!authLoading && !user) {
+    window.location.href = "/login";
+    return null;
+  }
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<any>(null);

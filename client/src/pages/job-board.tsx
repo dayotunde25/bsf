@@ -30,9 +30,11 @@ export default function JobBoard() {
   const [applyDialogOpen, setApplyDialogOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<any>(null);
 
-  const { data: jobs, isLoading } = useQuery({
+  const { data: jobsRaw, isLoading } = useQuery({
     queryKey: ['/api/jobs'],
   });
+  // Ensure jobs is always an array
+  const jobs: any[] = Array.isArray(jobsRaw) ? jobsRaw : [];
 
   const postJobMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -46,24 +48,15 @@ export default function JobBoard() {
       setPostJobDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
     },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
+    onError: (error: any) => {
       toast({
-        title: "Error posting job",
-        description: "There was an error posting your job. Please try again.",
+        title: "Error",
+        description: isUnauthorizedError(error) 
+          ? "You must be logged in to post jobs" 
+          : error?.message || "Failed to post job",
         variant: "destructive",
       });
-    },
+    }
   });
 
   const applyMutation = useMutation({
