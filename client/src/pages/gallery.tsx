@@ -32,8 +32,9 @@ export default function Gallery() {
   const [selectedSession, setSelectedSession] = useState("");
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
-  const { data: media = [] as Media[] } = useQuery<Media[]>({
+  const { data: media = [], isLoading: isLoadingMedia } = useQuery<Media[]>({
     queryKey: ['/api/gallery', selectedEventType, selectedSession],
+    initialData: [],
   });
 
   const uploadMutation = useMutation({
@@ -94,10 +95,13 @@ export default function Gallery() {
         <Card className="mb-8">
           <CardHeader>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <CardTitle className="flex items-center gap-2">
-                <Images className="text-bsf-green" size={24} />
-                Media Gallery
-              </CardTitle>
+              <div className="flex items-center gap-4">
+                <img src="/assets/BSF_1753800735615.png" alt="BSF Logo" className="h-8 w-8" />
+                <CardTitle className="flex items-center gap-2">
+                  <Images className="text-bsf-green" size={24} />
+                  Media Gallery
+                </CardTitle>
+              </div>
               
               <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
                 <DialogTrigger asChild>
@@ -213,9 +217,20 @@ export default function Gallery() {
           </CardHeader>
         </Card>
 
+        {/* Loading State */}
+        {isLoadingMedia && (
+          <div className="flex flex-col items-center justify-center min-h-[40vh]">
+            <div className="animate-spin">
+              <Images className="text-bsf-green h-8 w-8" />
+            </div>
+            <p className="mt-4 text-gray-600">Loading media...</p>
+          </div>
+        )}
+
         {/* Media Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {media.map((item) => (
+        {!isLoadingMedia && media.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {media.map((item) => (
             <Card key={item.id} className="hover-lift overflow-hidden">
               <div className="aspect-square bg-gray-200 flex items-center justify-center">
                 {item.mimeType.startsWith('image/') ? (
@@ -256,9 +271,10 @@ export default function Gallery() {
               </CardContent>
             </Card>
           ))}
-        </div>
+          </div>
+        )}
 
-        {!media?.length && (
+        {!isLoadingMedia && media.length === 0 && (
           <div className="flex flex-col items-center justify-center min-h-[40vh] w-full relative">
             <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none select-none">
               <img src="/assets/BSF_1753800735615.png" alt="BSF Logo" className="w-64 h-64 object-contain" />

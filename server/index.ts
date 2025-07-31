@@ -3,6 +3,7 @@ dotenv.config();
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { initializeAdmin } from "./initAdmin";
 
 const app = express();
 app.use(express.json());
@@ -39,6 +40,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize admin user
+  await initializeAdmin();
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

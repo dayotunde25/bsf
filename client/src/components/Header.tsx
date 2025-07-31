@@ -34,7 +34,7 @@ interface UnreadCount {
 }
 
 function Header() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -161,10 +161,8 @@ function Header() {
                   </>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <a href="/api/logout" className="flex items-center space-x-2">
-                    <span>Sign Out</span>
-                  </a>
+                <DropdownMenuItem onClick={logout} className="flex items-center space-x-2 cursor-pointer">
+                  <span>Sign Out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
