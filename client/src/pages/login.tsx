@@ -22,7 +22,7 @@ export function LoginPage() {
       });
 
       if (response.ok) {
-        setLocation("/dashboard");
+        setLocation("/");
       } else {
         const data = await response.json();
         setError(data.message || "Failed to login");
