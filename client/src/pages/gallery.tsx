@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Images, Upload, Filter, Calendar, Church } from "lucide-react";
+import type { Media } from "@shared/types";
 
 const eventTypes = [
   "Bible Study",
@@ -31,7 +32,7 @@ export default function Gallery() {
   const [selectedSession, setSelectedSession] = useState("");
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
-  const { data: media } = useQuery({
+  const { data: media = [] as Media[] } = useQuery<Media[]>({
     queryKey: ['/api/gallery', selectedEventType, selectedSession],
   });
 
@@ -214,7 +215,7 @@ export default function Gallery() {
 
         {/* Media Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {media?.map((item: any) => (
+          {media.map((item) => (
             <Card key={item.id} className="hover-lift overflow-hidden">
               <div className="aspect-square bg-gray-200 flex items-center justify-center">
                 {item.mimeType.startsWith('image/') ? (
@@ -258,8 +259,11 @@ export default function Gallery() {
         </div>
 
         {!media?.length && (
-          <Card>
-            <CardContent className="py-12 text-center">
+          <div className="flex flex-col items-center justify-center min-h-[40vh] w-full relative">
+            <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none select-none">
+              <img src="/assets/BSF_1753800735615.png" alt="BSF Logo" className="w-64 h-64 object-contain" />
+            </div>
+            <div className="relative z-10 text-center">
               <Images className="mx-auto mb-4 text-gray-300" size={64} />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 {selectedEventType || selectedSession ? 'No media found' : 'No media uploaded yet'}
@@ -279,8 +283,8 @@ export default function Gallery() {
                   Upload First Media
                 </Button>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
       </div>
     </div>

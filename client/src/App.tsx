@@ -19,6 +19,8 @@ import Resources from "@/pages/resources";
 import PrayerWall from "@/pages/prayer-wall";
 import Admin from "@/pages/admin";
 
+import ProfilePage from "@/pages/profile";
+
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -26,6 +28,8 @@ function Router() {
     <Switch>
       <Route path="/login" component={LoginPage} />
       <Route path="/register" component={RegisterPage} />
+      <Route path="/profile/:id" component={ProfilePage} />
+      <Route path="/profile" component={ProfilePage} />
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (
